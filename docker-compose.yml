@@ -4,23 +4,20 @@ version: '3'
 services:
   pastenym-frontend:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: js-example
     restart: unless-stopped
     ports:
       - 8001:80
   pastenym-backend:
     build:
-      context: .
-      dockerfile: Dockerfile.back
+      context: ./python
     restart: unless-stopped
     env_file: env.docker
     depends_on:
       - nym-client
   nym-client:
     build:
-      context: .                   
-      dockerfile: nym-client/Dockerfile
+      context: ./nym-client
     restart: unless-stopped
     volumes:
        - ./nym-client/nym-data/:/home/user/.nym/
