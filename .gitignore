@@ -418,7 +418,7 @@ cython_debug/
 # End of https://www.toptal.com/developers/gitignore/api/python,nextjs,node,pycharm+all
 
 nym-data
-data.db
+**data.db
 *.env.*
 nym-client/nym-client
 pastenym

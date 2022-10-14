@@ -8,6 +8,6 @@ RUN ["pip", "install", "pipenv"]
 COPY . .
 RUN ["pipenv", "install", "--system", "--deploy","--ignore-pipfile" ]
 ENV PYTHONUNBUFFERED 1
-CMD ["python", "serve.py"]
+CMD ["python", "main.py"]
 
 
