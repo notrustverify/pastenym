@@ -26,3 +26,9 @@ which IP address shared this information and therefore to find the person**
 ### Schema
 
 <img src="./resources/img/paste.jpg" alt="drawing" width="60%"/>
+
+## Structure
+
+* `backend/` manage the websockets connections and DB
+* `js-example/` temporary frontend, just for the demo, will be replaced
+* `nym-client/` store the 

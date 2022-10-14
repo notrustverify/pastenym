@@ -416,8 +416,8 @@ cython_debug/
 #.idea/
 
 # End of https://www.toptal.com/developers/gitignore/api/python,nextjs,node,pycharm+all
-
-nym-data
+*.pem
+nym-client/nym-data/clients/*
 **data.db
 *.env.*
 nym-client/nym-client
