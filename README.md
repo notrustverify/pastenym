@@ -63,7 +63,7 @@ NodeJS and npm are used
 
 ### Docker
 
-1. Download the custom nym-client. It just a recompiled version that can listen to `0.0.0.0`
+1. Download the [custom nym-client](https://nym.notrustverify.ch/resources/nym-client). It just a recompiled version that can listen to `0.0.0.0`
 2. Init the nym-client and copy files 
 ```bash
 cd nym-client
