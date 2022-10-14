@@ -4,6 +4,11 @@ This project is inspired from [pastebin](https://pastebin.com/) service.
 The main goal is to offer a solution for sharing text with [Nym](https://nymtech.net/) products
 to offer full anonymity, even on metadata level
 
+#### Demo
+Get shared text: [http://beta.notrustverify.ch/paste.html?zXruebin](http://beta.notrustverify.ch/paste.html?zXruebin)
+
+Share a text: [http://beta.notrustverify.ch](http://beta.notrustverify.ch)
+
 ## What Nym is developping ?
 > Nym is developing the infrastructure to prevent this data leakage by protecting every packet’s metadata at the network and application layers.
 
@@ -74,5 +79,5 @@ cp -r ~/.nym/clients/docker-client nym-data/clients
 
 * `backend/` manage the websockets connections and DB
 * `js-example/` temporary frontend, just for the demo, will be replaced
-* `nym-client/` store the configuration and keys for the nym-client
+* `nym-client/` store the configuration,keys for the nym-client
 * `resources/` store img or files for documentation
