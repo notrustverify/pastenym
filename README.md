@@ -27,8 +27,52 @@ which IP address shared this information and therefore to find the person**
 
 <img src="./resources/img/paste.jpg" alt="drawing" width="60%"/>
 
+## Init the project
+
+### Nym client
+1. Download [nym-client](https://github.com/nymtech/nym/releases/tag/nym-binaries-1.0.2)
+2. Give exec permissions and init the client
+```bash
+chmod +x nym-client
+./nym-client init --id pastenym --gateway EBT8jTD8o4tKng2NXrrcrzVhJiBnKpT1bJy5CMeArt2w
+```
+3. Run the client `./nym-client run --id pastenym`
+
+### Backend
+It uses [pipenv](https://pipenv.pypa.io/en/latest/install/)
+
+1. Go to `backend/`
+2. `pipenv shell` to start the python env
+3. `python3 -c "from db import *; create_tables()" ` to init the DB
+4. `python main.py` to start the service
+
+### Frontend
+NodeJS and npm are used
+
+* npm version `8.19.2`
+* nodejs version `v16.13.1`
+
+1. Go to `js-example/`
+1. `npm install`
+2. `npm run start` open the browser and go to [http://localhost:8081](http://localhost:8081)
+
+### Docker
+
+1. Download the custom nym-client. It just a recompiled version that can listen to `0.0.0.0`
+2. Init the nym-client and copy files 
+```bash
+cd nym-client
+chmod +x nym-client
+./nym-client init --id docker-client --gateway EBT8jTD8o4tKng2NXrrcrzVhJiBnKpT1bJy5CMeArt2w
+cp -r ~/.nym/clients/docker-client nym-data/clients
+```
+
+3. Change path in config.toml. For example with user root, search `/home/root` and replace by `/home/user`
+4. `docker compose up --build -d`
+
 ## Structure
 
 * `backend/` manage the websockets connections and DB
 * `js-example/` temporary frontend, just for the demo, will be replaced
-* `nym-client/` store the 
+* `nym-client/` store the configuration and keys for the nym-client
+* `resources/` store img or files for documentation
