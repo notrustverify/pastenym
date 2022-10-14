@@ -10,7 +10,7 @@ services:
       - 8001:80
   pastenym-backend:
     build:
-      context: ./python
+      context: ./backend
     restart: unless-stopped
     env_file: env.docker
     depends_on:
