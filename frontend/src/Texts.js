@@ -16,7 +16,7 @@ import { useParams } from 'react-router-dom'
 function Text() {
     const { urlId } = useParams();
     const [state, setState] = React.useState({ 
-        urlId: `${urlId}`,
+        urlId: null,
         text: null
     });
     
@@ -58,6 +58,8 @@ function Text() {
             </div>
 
             <div>
+                URL id is {state.urlId}
+                <br/>
                 {state.text}
             </div>
             

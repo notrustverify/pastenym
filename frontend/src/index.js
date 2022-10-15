@@ -17,6 +17,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path=":urlId" element={<Texts />} />
+      <Route path="*" element={<Texts />} />
     </Routes>
   </BrowserRouter>
   );
