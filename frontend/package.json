@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "version": "0.1.0",
-  "homepage": "https://https://notrustverify.github.io/pastenym",
+  "homepage": "https://https://notrustverify.github.io/pastenym/",
   "private": true,
   "bin": {
     "create-wasm-app": ".bin/create-wasm-app.js"
