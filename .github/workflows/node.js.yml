@@ -31,9 +31,9 @@ jobs:
             ${{ runner.os }}-node-
 
       - name: npm CI
-        working-directory: ./app
+        working-directory: ./frontend
         run: npm ci
 
       - name: npm build
-        working-directory: ./app
+        working-directory: ./frontend
         run: npm run build
