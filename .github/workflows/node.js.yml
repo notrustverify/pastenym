@@ -32,4 +32,11 @@ jobs:
 
       - name: npm build
         working-directory: ./frontend
-        run: npm run build
+        run: |
+          npm install
+          npm run build
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./public
+
