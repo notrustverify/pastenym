@@ -11,80 +11,11 @@ import Footer from './Footer'
 import Box from '@mui/joy/Box';
 
 
-
-
+// current limitation of rust-wasm for async stuff : (
 let client = null;
+let pasteNymClientId = "GEUpbQQg1ySd6tPk8h4CGmTYRLf6kv2KUzXoXzirVf3H.6yXK5WDwMboxS9vcVk1YyGDKGs8zMskiaHDR6TK3hvs8@GsGEZiDBz8SWfHGaK5SDmhfbTEM55v37WCYYcT9wTSxN";
 
-class WebWorkerClient {
-  worker = null;
 
-  constructor() {
-    this.worker = new Worker(`${process.env.PUBLIC_URL}worker.js`);
-
-    this.worker.onmessage = (ev) => {
-      if (ev.data && ev.data.kind) {
-        switch (ev.data.kind) {
-          case 'Ready':
-            const { selfAddress } = ev.data.args;
-            displaySenderAddress(selfAddress);
-            break;
-          case 'ReceiveMessage':
-            const { message } = ev.data.args;
-            displayReceived(message);
-            break;
-        }
-      }
-    };
-  }
-
-  sendMessage = (message, recipient) => {
-    if (!this.worker) {
-      console.error('Could not send message because worker does not exist');
-      return;
-    }
-
-    this.worker.postMessage({
-      kind: 'SendMessage',
-      args: {
-        message, recipient,
-      },
-    });
-  };
-}
-  
-function displayReceived(message) {
-  return
-}
-
-function displaySenderAddress(address) {
-  document.getElementById('sender').value = address;
-}
-
-async function sendMessageTo() {
-  const message = document.getElementById('message').value;
-  const recipient = document.getElementById('recipient').value;
-
-  await client.sendMessage(message, recipient);
-  displaySend(message);
-}
-
-function displaySend(message) {
-  let timestamp = new Date().toISOString().substr(11, 12);
-
-  let sendDiv = document.createElement('div');
-  let paragraph = document.createElement('p');
-  paragraph.setAttribute('style', 'color: blue');
-  let paragraphContent = document.createTextNode(timestamp + ' sent >>> ' + message);
-  paragraph.appendChild(paragraphContent);
-
-  sendDiv.appendChild(paragraph);
-  document.getElementById('output').appendChild(sendDiv);
-}
-
-async function main() {
-  client = new WebWorkerClient();
-
-}
 
 function ModeToggle() {
   const { mode, setMode } = useColorScheme();
@@ -111,10 +42,6 @@ function ModeToggle() {
   );
 }
 
-const sendText = () =>  {
-  console.log("button click");
-  sendMessageTo();
-}
 
 const theme = extendTheme({
   components: {
@@ -122,22 +49,99 @@ const theme = extendTheme({
   },
 });
 
+const Unloaded = ({ loading, loadWasm }) => {
+  return loading ? (
+    <div>Loading...</div>
+  ) : (
+    <button onClick={loadWasm}>Load Nym</button>
+  );
+};
+
+
 
 function App() {
-
-  main();
-
-
   const [text, setText] = React.useState('');
-  //var worker = new Worker(NymWorker);
+
+  const [wasm, setWasm] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+  const loadWasm = async () => {
+    try {
+
+      const wasm = await import('@nymproject/nym-client-wasm');
+      setWasm(wasm);
+      wasm.set_panic_hook();
+      const validator = "https://validator.nymtech.net/api";
+
+    client = new wasm.NymClient(validator);
+    const on_message = (msg) => displayReceived(msg);
+    const on_connect = () => console.log("Established (and authenticated) gateway connection!");
+
+
+    client.set_on_gateway_connect(on_connect);
+    client.set_on_message(on_message);
+
+
+    // this is current limitation of wasm in rust - for async methods you can't take self my reference...
+    // I'm trying to figure out if I can somehow hack my way around it, but for time being you have to re-assign
+    // the object (it's the same one)
+    client = await client.initial_setup();
+
+    const self_address = client.self_address();
+      console.log(client.self_address());
+  
+    setLoading(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  async function sendMessageTo(cmd,text) {
+    const message = client.self_address()+"/"+cmd+"/"+text;
+  
+    console.log(message)
+    client = await client.send_message(message, pasteNymClientId);
+    //displaySend(message);
+  }
+
+
+  function displayReceived(message) {
+    console.log(message);
+    const content = message.message;
+    const replySurb = message.replySurb;
+    let hostname = ""
+   if (window.location.port.length > 0){
+      hostname = window.location.hostname+':'+window.location.port
+   } else {
+      hostname = window.location.hostname
+   }
+
+   const urlBasePaste = 'http://'+hostname+'/'
+   
+    if (content.length > 0) {
+        window.location.href = urlBasePaste+content;
+    }else{
+
+    let paragraphContent = "Error try again"
+    document.getElementById("output").innerHTML = paragraphContent
+    }
+}
+
+  const sendText = () =>  {
+    console.log("button click");
+    sendMessageTo("newText",text);
+    console.log(text);
+  }
+
   return (
+  
 
 <CssVarsProvider theme={theme}>
       <header>
       <Header/>
+      { <Unloaded loading={loading} loadWasm={loadWasm} />}
       </header>
       <main>
-        
+      
         <Sheet
           sx={{
             width: 'auto',
@@ -157,7 +161,7 @@ function App() {
         >
           <div>
             <Typography level="h4" component="h1">
-              <b>Pastenym</b>
+              <b>Pastenym {loading}</b>
             </Typography>
             
           </div>
@@ -169,7 +173,7 @@ function App() {
           label="Text to share"
         placeholder="Type in here…"
         minRows={10}
-        fullWidth
+        fullwidth="true"
         required
         value={text}
         onChange={(event) => setText(event.target.value)}

@@ -13,6 +13,21 @@ import AspectRatio from '@mui/joy/AspectRatio';
 import ImageIcon from '@mui/icons-material/Image';
 import { useParams } from 'react-router-dom'
 
+// current limitation of rust-wasm for async stuff : (
+  let client = null;
+  let pasteNymClientId = "GEUpbQQg1ySd6tPk8h4CGmTYRLf6kv2KUzXoXzirVf3H.6yXK5WDwMboxS9vcVk1YyGDKGs8zMskiaHDR6TK3hvs8@GsGEZiDBz8SWfHGaK5SDmhfbTEM55v37WCYYcT9wTSxN";
+
+
+
+  const Unloaded = ({ loading, loadWasm }) => {
+    return loading ? (
+      <div>Loading...</div>
+    ) : (
+      <button onClick={loadWasm}>Load Nym</button>
+    );
+  };
+  
+
 function Text() {
     const { urlId } = useParams();
     const [state, setState] = React.useState({ 
@@ -20,16 +35,71 @@ function Text() {
         text: null
     });
     
-    React.useEffect(() => {
-        // get text linked text to urlID axios.get(`${urlId}`)
-        setState({urlId: `${urlId}`,text:"dfsdkfhsfjhsdfsd"})
-    },[]);
+    
 
+
+    const [wasm, setWasm] = React.useState(null);
+    const [loading, setLoading] = React.useState(false);
+    const loadWasm = async () => {
+      try {
+  
+        const wasm = await import('@nymproject/nym-client-wasm');
+        setWasm(wasm);
+        wasm.set_panic_hook();
+        const validator = "https://validator.nymtech.net/api";
+  
+      client = new wasm.NymClient(validator);
+      const on_message = (msg) => displayReceived(msg);
+      const on_connect = () => console.log("Established (and authenticated) gateway connection!");
+  
+
+      client.set_on_gateway_connect(on_connect);
+      client.set_on_message(on_message);
+  
+  
+      // this is current limitation of wasm in rust - for async methods you can't take self my reference...
+      // I'm trying to figure out if I can somehow hack my way around it, but for time being you have to re-assign
+      // the object (it's the same one)
+      client = await client.initial_setup();
+  
+      const self_address = client.self_address();
+      console.log(client.self_address());
+      await sendMessageTo("getText",self_address);
+
+      setLoading(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    async function sendMessageTo(cmd,self_address) {
+      console.log(self_address);
+  
+      const message = self_address+"/"+cmd+"/"+urlId;
+  
+      client = await client.send_message(message, pasteNymClientId);
+  
+  }
+
+  function displayReceived(message) {
+    const content = message.message;
+    const replySurb = message.replySurb;
+    console.log(content)
+
+
+    React.useEffect(() => {
+      setState({urlId: `${urlId}`,text:content})
+  },[]);
+
+}
+  
     return (
   
   <CssVarsProvider>
         <header>
         <Header/>
+        { <Unloaded loading={loading} loadWasm={loadWasm} />}
+
         </header>
         <main>
           

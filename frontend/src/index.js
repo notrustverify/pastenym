@@ -11,9 +11,12 @@ import {
   Link,
 } from "react-router-dom";
 
+if (module.hot) module.hot.accept()
+
 export default function App() {
   return (
-    <BrowserRouter basename={`/${process.env.PUBLIC_URL}`}>
+    //<BrowserRouter basename={`/${process.env.PUBLIC_URL}`}>
+    <BrowserRouter>
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path=":urlId" element={<Texts />} />
