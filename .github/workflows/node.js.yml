@@ -9,13 +9,12 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
-defaults:
-  run:
-    working-directory: frontend
 
 jobs:
   build:
-
+    defaults:
+      run:
+        working-directory: frontend
     runs-on: ubuntu-latest
 
     strategy:
