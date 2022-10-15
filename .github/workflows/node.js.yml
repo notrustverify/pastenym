@@ -30,10 +30,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-      - name: npm CI
-        working-directory: ./frontend
-        run: npm ci
-
       - name: npm build
         working-directory: ./frontend
         run: npm run build
