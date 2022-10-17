@@ -43,6 +43,7 @@ jobs:
           npm run build
         env:
           CI: false
+          REACT_APP_NYM_CLIENT_SERVER: ${{ secrets.REACT_APP_NYM_CLIENT_SERVER }}
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
