@@ -35,7 +35,17 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-
+            
+      - name: Create and populate .env file
+        working-directory: ./frontend
+        env:
+          REACT_APP_NYM_CLIENT_SERVER: ${{ secrets.REACT_APP_NYM_CLIENT_SERVER }}
+        run: |
+          cd ./frontend
+          cat <<EOF > .env
+          REACT_APP_NYM_CLIENT_SERVER="$REACT_APP_NYM_CLIENT_SERVER"
+          EOF
+          
       - name: npm build
         working-directory: ./frontend
         run: |
@@ -43,7 +53,6 @@ jobs:
           npm run build
         env:
           CI: false
-          REACT_APP_NYM_CLIENT_SERVER: ${{ secrets.REACT_APP_NYM_CLIENT_SERVER }}
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
