@@ -3,6 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const webpack = require('webpack')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const Dotenv = require('dotenv-webpack')
 
 module.exports = {
   entry: {
@@ -31,6 +32,7 @@ module.exports = {
     }),
      new CleanWebpackPlugin(),
      new webpack.HotModuleReplacementPlugin(),
+     new Dotenv(),
      
     ],
     module: {
