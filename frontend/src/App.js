@@ -9,82 +9,16 @@ import Textarea from '@mui/joy/Textarea';
 import Header from './Header';
 import Footer from './Footer'
 import Box from '@mui/joy/Box';
+import {Navigate,useNavigate} from 'react-router-dom';
+import SendIcon from '@mui/icons-material/Send';
 
-
-
-
+// current limitation of rust-wasm for async stuff : (
 let client = null;
+let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER;
+let self_address = null
 
-class WebWorkerClient {
-  worker = null;
 
-  constructor() {
-    this.worker = new Worker(`${process.env.PUBLIC_URL}worker.js`);
 
-    this.worker.onmessage = (ev) => {
-      if (ev.data && ev.data.kind) {
-        switch (ev.data.kind) {
-          case 'Ready':
-            const { selfAddress } = ev.data.args;
-            displaySenderAddress(selfAddress);
-            break;
-          case 'ReceiveMessage':
-            const { message } = ev.data.args;
-            displayReceived(message);
-            break;
-        }
-      }
-    };
-  }
-
-  sendMessage = (message, recipient) => {
-    if (!this.worker) {
-      console.error('Could not send message because worker does not exist');
-      return;
-    }
-
-    this.worker.postMessage({
-      kind: 'SendMessage',
-      args: {
-        message, recipient,
-      },
-    });
-  };
-}
-  
-function displayReceived(message) {
-  return
-}
-
-function displaySenderAddress(address) {
-  document.getElementById('sender').value = address;
-}
-
-async function sendMessageTo() {
-  const message = document.getElementById('message').value;
-  const recipient = document.getElementById('recipient').value;
-
-  await client.sendMessage(message, recipient);
-  displaySend(message);
-}
-
-function displaySend(message) {
-  let timestamp = new Date().toISOString().substr(11, 12);
-
-  let sendDiv = document.createElement('div');
-  let paragraph = document.createElement('p');
-  paragraph.setAttribute('style', 'color: blue');
-  let paragraphContent = document.createTextNode(timestamp + ' sent >>> ' + message);
-  paragraph.appendChild(paragraphContent);
-
-  sendDiv.appendChild(paragraph);
-  document.getElementById('output').appendChild(sendDiv);
-}
-
-async function main() {
-  client = new WebWorkerClient();
-
-}
 
 function ModeToggle() {
   const { mode, setMode } = useColorScheme();
@@ -98,23 +32,10 @@ function ModeToggle() {
   if (!mounted) {
     return null;
   }
-
-  return (
-    <Button
-      variant="outlined"
-      onClick={() => {
-        setMode(mode === 'light' ? 'dark' : 'light');
-      }}
-    >
-      {mode === 'light' ? 'Turn dark' : 'Turn light'}
-    </Button>
-  );
 }
 
-const sendText = () =>  {
-  console.log("button click");
-  sendMessageTo();
-}
+
+
 
 const theme = extendTheme({
   components: {
@@ -123,21 +44,94 @@ const theme = extendTheme({
 });
 
 
+
 function App() {
-
-  main();
-
-
   const [text, setText] = React.useState('');
-  //var worker = new Worker(NymWorker);
+  const [loading, setLoading] = React.useState(false);
+  const [wasm, setWasm] = React.useState(null);
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    let isMounted = true;
+    setLoading(!loading);
+
+    const loadWasm = async () => {
+        
+        const wasm = await import('@nymproject/nym-client-wasm');
+        if (isMounted) {
+        
+        
+        wasm.set_panic_hook();
+        const validator = "https://validator.nymtech.net/api";
+  
+      client = new wasm.NymClient(validator);
+
+      const on_message = (msg) => displayReceived(msg);
+      const on_connect = () => console.log("Established (and authenticated) gateway connection!");
+  
+
+      client.set_on_gateway_connect(on_connect);
+      client.set_on_message(on_message);
+  
+  
+      // this is current limitation of wasm in rust - for async methods you can't take self my reference...
+      // I'm trying to figure out if I can somehow hack my way around it, but for time being you have to re-assign
+      // the object (it's the same one)
+      client = await client.initial_setup();
+          
+      self_address = client.self_address();
+      console.log(client.self_address());
+      setWasm(client);
+      console.log(loading);
+   
+      console.log(loading);
+      }
+    
+    };
+    
+    loadWasm().catch(console.error);
+   
+    return () => { isMounted = false };
+  },[]);
+    
+  async function sendMessageTo(cmd,content) {  
+    const message = self_address+"/"+cmd+"/"+content;
+
+    client = await client.send_message(message, pasteNymClientId);
+
+}
+
+    
+
+function displayReceived(message) {
+  const content = message.message;
+  const replySurb = message.replySurb;
+  console.log(content.length)
+
+  if (content.length > 0) {
+    navigate('/'+content);
+  } else {
+  console.log(content);
+}
+  
+}
+
+  const sendText = () =>  {
+    console.log("button click");
+    sendMessageTo("newText",text);
+    console.log(text);
+    
+  }
+
   return (
+  
 
 <CssVarsProvider theme={theme}>
       <header>
       <Header/>
       </header>
       <main>
-        
+      
         <Sheet
           sx={{
             width: 'auto',
@@ -157,9 +151,14 @@ function App() {
         >
           <div>
             <Typography level="h4" component="h1">
-              <b>Pastenym</b>
+              <b>Pastenym {loading}</b>
             </Typography>
-            
+            <Typography fontSize="sm">
+                <b>Client id</b> {wasm ? (self_address.split("@")[0].slice(0,60)+"...") : "loading"}
+              </Typography >
+              <Typography fontSize="sm">
+                <b>Connected Gateway</b> {wasm ? (self_address.split("@")[1]) : "loading"}
+              </Typography>
           </div>
           
           <Textarea
@@ -169,8 +168,9 @@ function App() {
           label="Text to share"
         placeholder="Type in here…"
         minRows={10}
-        fullWidth
+        fullwidth="true"
         required
+        disabled={wasm ? false: true}
         value={text}
         onChange={(event) => setText(event.target.value)}
         startDecorator={
@@ -185,10 +185,13 @@ function App() {
         }
        
        />
-          <Button 
+          <Button
+          loading={wasm ? false: true}
           onClick={sendText}
+          endDecorator={<SendIcon />}
           sx={{ mt: 1 /* margin top */ }}>
-            Share your text
+
+            Send
               
           </Button>
           

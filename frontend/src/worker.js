@@ -11,17 +11,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 if( 'undefined' === typeof window){
-    importScripts('workerscript2.js');
+  importScripts('nym_client_wasm.js');
+}
+// wasm_bindgen creates a global variable (with the exports attached) that is in scope after `importScripts`
+    const { default_debug, get_gateway, NymClient, set_panic_hook, Config } = wasm_bindgen;
 
- }
 
 
 console.log('Initializing worker');
 
-// wasm_bindgen creates a global variable (with the exports attached) that is in scope after `importScripts`
-const { default_debug, get_gateway, NymClient, set_panic_hook, Config } = wasm_bindgen;
+
 
 class ClientWrapper {
   constructor(config, onMessageHandler) {

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "homepage": "https://notrustverify.github.io/pastenym/",
   "private": true,
+  "main": "index.js",
   "bin": {
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
@@ -16,12 +17,16 @@
     "@iconify/react": "^4.0.0",
     "@mui/icons-material": "^5.10.9",
     "@mui/joy": "^5.0.0-alpha.49",
+    "@mui/lab": "^5.0.0-alpha.103",
     "@mui/material": "^5.10.9",
     "@nymproject/nym-client-wasm": "^1.0.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "dotenv-webpack": "^8.0.1",
+    "he": "^1.2.0",
     "i": "^0.3.7",
+    "import-scripts": "^1.0.0",
     "npm": "^8.19.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -29,18 +34,37 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "@babel/core": "^7.19.3",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/preset-env": "^7.19.4",
+    "@babel/preset-react": "^7.18.6",
+    "autoprefixer": "10.4.5",
+    "babel-loader": "^8.2.5",
+    "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^10.2.4",
+    "css-loader": "^6.7.1",
+    "file-loader": "^6.2.0",
     "hello-wasm-pack": "^0.1.0",
+    "html-webpack-plugin": "^5.5.0",
+    "mini-css-extract-plugin": "^2.6.1",
+    "node-sass": "^7.0.3",
+    "postcss": "^8.4.18",
+    "postcss-loader": "^7.0.1",
+    "postcss-preset-env": "^7.8.2",
     "react-router-dom": "^6.4.2",
-    "webpack": "^5.70.0",
-    "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.7.4"
+    "sass-loader": "^13.1.0",
+    "style-loader": "^3.3.1",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.11.1"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build && cp build/index.html build/404.html",
+    "start": "webpack serve",
+    "build": "webpack",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "dev": "webpack serve --mode development"
   },
   "eslintConfig": {
     "extends": [

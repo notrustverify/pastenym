@@ -14,7 +14,9 @@ function Copyright() {
         <CssVarsProvider>
 
       <Typography variant="body2" color="text.secondary" align="center">
-        Powered by <Link href="https://notrustverify.ch" underline="none">No Trust Verify</Link>
+        Powered by <Link href="https://nymtech.net" underline="none">Nym</Link>
+        <br/>
+        Dev by <Link href="https://notrustverify.ch" underline="none">No Trust Verify</Link>
         <br/>
        <Link href="mailto:hello@notrustverify.ch" underline="none" color="primary"><EmailIcon/> </Link>
        {' '}
