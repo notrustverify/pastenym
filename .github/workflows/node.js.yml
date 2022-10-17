@@ -41,7 +41,6 @@ jobs:
         env:
           REACT_APP_NYM_CLIENT_SERVER: ${{ secrets.REACT_APP_NYM_CLIENT_SERVER }}
         run: |
-          cd ./frontend
           cat <<EOF > .env
           REACT_APP_NYM_CLIENT_SERVER="$REACT_APP_NYM_CLIENT_SERVER"
           EOF
