@@ -109,7 +109,7 @@ function displayReceived(message) {
   console.log(content.length)
 
   if (content.length > 0) {
-    navigate('/'+content);
+    navigate("/"+content);
   } else {
   console.log(content);
 }

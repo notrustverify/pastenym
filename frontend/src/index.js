@@ -16,8 +16,7 @@ if (module.hot) module.hot.accept()
 
 export default function App() {
   return (
-    //<BrowserRouter basename={`/${process.env.PUBLIC_URL}`}>
-    <BrowserRouter>
+    <BrowserRouter basename="/pastenym">
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path=":urlId" element={<Texts />} />
