@@ -42,7 +42,7 @@ class Header extends React.Component {
   return (
     <CssVarsProvider>
 <Breadcrumbs separator="›" aria-label="breadcrumbs">
-  <Link href="/pastenym"
+  <Link href="/"
   underline="hover"
   color="neutral"
   fontSize="inherit"
