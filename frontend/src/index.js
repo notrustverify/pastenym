@@ -16,7 +16,7 @@ if (module.hot) module.hot.accept()
 
 export default function App() {
   return (
-    <BrowserRouter basename="/pastenym">
+    <BrowserRouter basename="/">
     <Routes>
       <Route path="/" element={<Index />} />
       <Route path=":urlId" element={<Texts />} />
