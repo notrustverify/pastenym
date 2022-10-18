@@ -13,6 +13,8 @@ import AspectRatio from '@mui/joy/AspectRatio';
 import ImageIcon from '@mui/icons-material/Image';
 import { useParams } from 'react-router-dom';
 import he from 'he';
+import CircularProgress from '@mui/joy/CircularProgress';
+
 
 // current limitation of rust-wasm for async stuff : (
   let client = null;
