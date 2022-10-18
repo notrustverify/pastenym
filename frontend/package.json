@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "version": "0.1.0",
-  "homepage": "https://notrustverify.github.io/pastenym/",
+  "homepage": "http://pastenym.notrustverify.ch/pastenym/",
   "private": true,
   "main": "index.js",
   "bin": {
