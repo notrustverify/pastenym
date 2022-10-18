@@ -8,6 +8,7 @@ const Dotenv = require('dotenv-webpack')
 module.exports = {
   entry: {
     main: path.resolve(__dirname, './src/index.js'),
+    app: path.resolve(__dirname, './src/App.js')
     //worker: path.resolve(__dirname, './src/worker.js'),
     //bootstrap: path.resolve(__dirname, './src/bootstrap.js')
   },
@@ -73,4 +74,8 @@ module.exports = {
   experiments: { 
     syncWebAssembly: true,
   },
+  performance: {
+    maxEntrypointSize: 1012000,
+    maxAssetSize: 4212000
+},
 }

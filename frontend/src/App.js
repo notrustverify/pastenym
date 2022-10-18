@@ -11,11 +11,22 @@ import Footer from './Footer'
 import Box from '@mui/joy/Box';
 import {Navigate,useNavigate} from 'react-router-dom';
 import SendIcon from '@mui/icons-material/Send';
+import ReportIcon from '@mui/icons-material/Report';
+import Alert from '@mui/joy/Alert';
+import IconButton from '@mui/joy/IconButton';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import CircularProgress from '@mui/joy/CircularProgress';
+import Modal from '@mui/joy/Modal';
+import ModalClose from '@mui/joy/ModalClose';
+
 
 // current limitation of rust-wasm for async stuff : (
 let client = null;
 let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER;
 let self_address = null
+
+
+
 
 
 
@@ -50,6 +61,7 @@ function App() {
   const [loading, setLoading] = React.useState(false);
   const [wasm, setWasm] = React.useState(null);
   const navigate = useNavigate();
+  const [open, setOpen] = React.useState(false);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -82,9 +94,7 @@ function App() {
       self_address = client.self_address();
       console.log(client.self_address());
       setWasm(client);
-      console.log(loading);
-   
-      console.log(loading);
+
       }
     
     };
@@ -101,6 +111,7 @@ function App() {
 
 }
 
+
     
 
 function displayReceived(message) {
@@ -108,18 +119,75 @@ function displayReceived(message) {
   const replySurb = message.replySurb;
   console.log(content.length)
 
-  if (content.length > 0) {
-    navigate("/"+content);
+  if ( content.length > 0) {
+    if (content === "text too long"){
+      setOpen(true);
+    } else {
+      navigate("/"+content);
+    }
   } else {
   console.log(content);
 }
   
 }
 
+function ErrorModal(){
+  
+
+  return (
+    <Modal
+    aria-labelledby="modal-title"
+    aria-describedby="modal-desc"
+    open={open}
+    onClose={() => setOpen(false)}
+    sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+  >
+
+    <Sheet
+      variant="outlined"
+      sx={{
+        maxWidth: 500,
+        borderRadius: 'md',
+        p: 3,
+        boxShadow: 'lg',
+      }}
+    >
+      <ModalClose
+        variant="outlined"
+        sx={{
+          top: 'calc(-1/4 * var(--IconButton-size))',
+          right: 'calc(-1/4 * var(--IconButton-size))',
+          boxShadow: '0 2px 12px 0 rgba(0 0 0 / 0.2)',
+          borderRadius: '50%',
+          bgcolor: 'background.body',
+        }}
+      />
+      <Typography
+        component="h2"
+        id="modal-title"
+        level="h4"
+        textColor="inherit"
+        fontWeight="lg"
+
+        mb={1}
+      >
+        Error
+      </Typography>
+      <Typography id="modal-desc" textColor="text.tertiary">
+        Too many char
+      </Typography>
+    </Sheet>
+  </Modal>
+      )
+}
+
   const sendText = () =>  {
     console.log("button click");
-    sendMessageTo("newText",text);
-    console.log(text);
+
+    if (text.length <= 10000)
+      sendMessageTo("newText",text);
+    else
+      setOpen(true)
     
   }
 
@@ -154,10 +222,16 @@ function displayReceived(message) {
               <b>Pastenym {loading}</b>
             </Typography>
             <Typography fontSize="sm">
-                <b>Client id</b> {wasm ? (self_address.split("@")[0].slice(0,60)+"...") : "loading"}
+                <b>Client id</b> {wasm ? (self_address.split("@")[0].slice(0,60)+"...") : <CircularProgress sx={{
+                                "--CircularProgress-size": "20px",
+                                "--CircularProgress-track-thickness": "3px",
+                                "--CircularProgress-progress-thickness": "3px"}} />}
               </Typography >
               <Typography fontSize="sm">
-                <b>Connected Gateway</b> {wasm ? (self_address.split("@")[1]) : "loading"}
+                <b>Connected Gateway</b> {wasm ? (self_address.split("@")[1]) : <CircularProgress sx={{
+                                "--CircularProgress-size": "20px",
+                                "--CircularProgress-track-thickness": "3px",
+                                "--CircularProgress-progress-thickness": "3px"}} />}
               </Typography>
           </div>
           
@@ -194,7 +268,7 @@ function displayReceived(message) {
             Send
               
           </Button>
-          
+          <ErrorModal />
         </Sheet>
       
       </main>

@@ -44,16 +44,21 @@ class Serve:
         return Serve.createPayload(recipient, reply_message)
 
     def newText(self, recipient, message):
-        urlId = pasteNym.newText(message)
-        print(message)
-        try:
-            if len(urlId) > 0:
-                reply_message = urlId[0].get('url_id')
-            else:
+
+        if len(message) <= utils.PASTE_MAX_LENGTH:
+            urlId = pasteNym.newText(message)
+
+            try:
+                if len(urlId) > 0:
+                    reply_message = urlId[0].get('url_id')
+                else:
+                    reply_message = "error"
+            except IndexError as e:
+                print(e)
                 reply_message = "error"
-        except IndexError as e:
-            print(e)
-            reply_message = "error"
+        else:
+            reply_message = f"text too long. Max is {utils.PASTE_MAX_LENGTH}"
+
         print(reply_message)
 
         return Serve.createPayload(recipient, reply_message)
