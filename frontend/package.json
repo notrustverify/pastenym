@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "version": "0.1.0",
-  "homepage": "http://pastenym.notrustverify.ch/pastenym/",
+  "homepage": "http://pastenym.notrustverify.ch/",
   "private": true,
   "main": "index.js",
   "bin": {
