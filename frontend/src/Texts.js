@@ -133,10 +133,16 @@ function Texts() {
                 <b>Pastenym</b>
               </Typography>
               <Typography fontSize="sm">
-                <b>Client id</b> {wasm ? (self_address.split("@")[0].slice(0,60)+"...") : "loading"}
+                <b>Client id</b> {wasm ? (self_address.split("@")[0].slice(0,60)+"...") : <CircularProgress sx={{
+                                "--CircularProgress-size": "20px",
+                                "--CircularProgress-track-thickness": "3px",
+                                "--CircularProgress-progress-thickness": "3px"}} />}
               </Typography >
               <Typography fontSize="sm">
-                <b>Connected Gateway</b> {wasm ? (self_address.split("@")[1]) : "loading"}
+                <b>Connected Gateway</b> wasm ? (self_address.split("@")[1]) : <CircularProgress sx={{
+                                "--CircularProgress-size": "20px",
+                                "--CircularProgress-track-thickness": "3px",
+                                "--CircularProgress-progress-thickness": "3px"}} />}
               </Typography>
               
             </div>

@@ -260,7 +260,7 @@ function ErrorModal(){
        
        />
           <Button
-          loading={wasm ? false: true}
+          disabled={wasm ? false: true}
           onClick={sendText}
           endDecorator={<SendIcon />}
           sx={{ mt: 1 /* margin top */ }}>
