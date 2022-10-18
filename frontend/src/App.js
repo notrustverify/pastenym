@@ -120,7 +120,7 @@ function displayReceived(message) {
   console.log(content.length)
 
   if ( content.length > 0) {
-    if (content === "text too long"){
+    if (content.includes("Text too long")){
       setOpen(true);
     } else {
       navigate("/"+content);
@@ -174,7 +174,7 @@ function ErrorModal(){
         Error
       </Typography>
       <Typography id="modal-desc" textColor="text.tertiary">
-        Too many char
+        Too many char. limit is 10'000
       </Typography>
     </Sheet>
   </Modal>

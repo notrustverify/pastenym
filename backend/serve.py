@@ -57,7 +57,7 @@ class Serve:
                 print(e)
                 reply_message = "error"
         else:
-            reply_message = f"text too long. Max is {utils.PASTE_MAX_LENGTH}"
+            reply_message = f"Text too long. Max is {utils.PASTE_MAX_LENGTH}"
 
         print(reply_message)
 
