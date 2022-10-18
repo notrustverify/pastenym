@@ -61,7 +61,7 @@
   },
   "scripts": {
     "start": "webpack serve",
-    "build": "webpack",
+    "build": "webpack && cd dist && cp index.html 404.html",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "dev": "webpack serve --mode development"
