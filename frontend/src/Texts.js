@@ -141,7 +141,7 @@ function Texts() {
                                 "--CircularProgress-progress-thickness": "3px"}} />}
               </Typography >
               <Typography fontSize="sm">
-                <b>Connected Gateway</b> wasm ? (self_address.split("@")[1]) : <CircularProgress sx={{
+                <b>Connected Gateway</b> {wasm ? (self_address.split("@")[1]) : <CircularProgress sx={{
                                 "--CircularProgress-size": "20px",
                                 "--CircularProgress-track-thickness": "3px",
                                 "--CircularProgress-progress-thickness": "3px"}} />}
