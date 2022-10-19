@@ -1,4 +1,4 @@
-[![Frontend deployment](https://github.com/notrustverify/pastenym/actions/workflows/node.js.yml/badge.svg)](https://github.com/notrustverify/pastenym/actions/workflows/node.js.yml)
+[![Node.js CI](https://github.com/notrustverify/pastenym/actions/workflows/frontend.yml/badge.svg)](https://github.com/notrustverify/pastenym/actions/workflows/frontend.yml)
 
 # pastenym
 
