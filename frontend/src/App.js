@@ -174,7 +174,7 @@ function ErrorModal(){
         Error
       </Typography>
       <Typography id="modal-desc" textColor="text.tertiary">
-        Too many char. limit is 10'000
+        Too many char. limit is 100'000
       </Typography>
     </Sheet>
   </Modal>
@@ -184,7 +184,7 @@ function ErrorModal(){
   const sendText = () =>  {
     console.log("button click");
 
-    if (text.length <= 10000)
+    if (text.length <= 100000)
       sendMessageTo("newText",text);
     else
       setOpen(true)
