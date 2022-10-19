@@ -153,7 +153,9 @@ function Texts() {
               display: 'flex', 
               whiteSpace: 'pre-wrap'
             }}>
-              {state.text}
+              {state.text ? state.text : <Button startDecorator={<CircularProgress variant="solid" thickness={2} />}>
+                                          Loading…
+                                          </Button>}
             </Box>
 
             
