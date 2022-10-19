@@ -174,7 +174,7 @@ function ErrorModal(){
         Error
       </Typography>
       <Typography id="modal-desc" textColor="text.tertiary">
-        Too many char. limit is 100'000
+        Too many char. limit is 100000
       </Typography>
     </Sheet>
   </Modal>
