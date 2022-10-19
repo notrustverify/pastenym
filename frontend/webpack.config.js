@@ -4,6 +4,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const webpack = require('webpack')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const Dotenv = require('dotenv-webpack')
+const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 
 module.exports = {
   entry: {
@@ -20,6 +21,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({      
       title: 'Pastenym',
+      description: "Anonymous share text service powered by Nym mixnet",
       template: path.resolve(__dirname, './src/index.html'), // template file      
       filename: 'index.html', // output file   
      }),
@@ -31,9 +33,10 @@ module.exports = {
         },
       ],
     }),
-     new CleanWebpackPlugin(),
-     new webpack.HotModuleReplacementPlugin(),
-     new Dotenv(),
+    new FaviconsWebpackPlugin('./public/logo.png'),
+    new CleanWebpackPlugin(),
+    new webpack.HotModuleReplacementPlugin(),
+    new Dotenv(),
      
     ],
     module: {
@@ -46,8 +49,18 @@ module.exports = {
           },
           // Images
           {
-            test: /\.(?:ico|gif|png|jpg|jpeg)$/i,     
-            type: 'asset/resource',  
+            test: /\.(?:ico|gif|png|jpg|jpeg)$/i,  
+            type: 'asset/resource',
+            generator: {
+              filename: 'images/[name]-[hash][ext]'
+            }
+          },
+          {
+            test: /\.(png|jpg)$/i,
+            type: 'asset/resource',
+            generator: {
+                filename: 'images/[name]-[hash][ext]'
+            }
           },
           // Fonts and SVGs
           {

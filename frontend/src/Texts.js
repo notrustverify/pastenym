@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CssVarsProvider, useColorScheme,extendTheme } from '@mui/joy/styles';
+import {  extendTheme as extendJoyTheme, CssVarsProvider, useColorScheme } from '@mui/joy/styles';
 import Sheet from '@mui/joy/Sheet';
 import Typography from '@mui/joy/Typography';
 import TextField from '@mui/joy/TextField';
@@ -14,6 +14,84 @@ import ImageIcon from '@mui/icons-material/Image';
 import { useParams } from 'react-router-dom';
 import he from 'he';
 import CircularProgress from '@mui/joy/CircularProgress';
+import Divider from '@mui/joy/Divider';
+import { deepmerge } from '@mui/utils';
+import { experimental_extendTheme as extendMuiTheme } from '@mui/material/styles';
+import colors from '@mui/joy/colors';
+import Skeleton from '@mui/material/Skeleton';
+
+
+const muiTheme = extendMuiTheme({
+  // This is required to point to `var(--joy-*)` because we are using `CssVarsProvider` from Joy UI.
+  cssVarPrefix: 'joy',
+  colorSchemes: {
+    light: {
+      palette: {
+        primary: {
+          main: colors.blue[500],
+        },
+        grey: colors.grey,
+        error: {
+          main: colors.red[500],
+        },
+        info: {
+          main: colors.purple[500],
+        },
+        success: {
+          main: colors.green[500],
+        },
+        warning: {
+          main: colors.yellow[200],
+        },
+        common: {
+          white: '#FFF',
+          black: '#09090D',
+        },
+        divider: colors.grey[200],
+        text: {
+          primary: colors.grey[800],
+          secondary: colors.grey[600],
+        },
+      },
+    },
+    dark: {
+      palette: {
+        primary: {
+          main: colors.blue[600],
+        },
+        grey: colors.grey,
+        error: {
+          main: colors.red[600],
+        },
+        info: {
+          main: colors.purple[600],
+        },
+        success: {
+          main: colors.green[600],
+        },
+        warning: {
+          main: colors.yellow[300],
+        },
+        common: {
+          white: '#FFF',
+          black: '#09090D',
+        },
+        divider: colors.grey[800],
+        text: {
+          primary: colors.grey[100],
+          secondary: colors.grey[300],
+        },
+      },
+    },
+  },
+});
+
+const joyTheme = extendJoyTheme();
+
+// You can use your own `deepmerge` function.
+// joyTheme will deeply merge to muiTheme.
+const theme = deepmerge(muiTheme, joyTheme);
+
 
 
 // current limitation of rust-wasm for async stuff : (
@@ -106,7 +184,7 @@ function Texts() {
 
     return (
   
-  <CssVarsProvider>
+  <CssVarsProvider theme={theme}>
         <header>
         <Header/>
         </header>
@@ -130,8 +208,10 @@ function Texts() {
             }}
             variant="outlined"
           >
+            
             <div>
-              <Typography level="h4" component="h1">
+
+              <Typography level="h4">
                 <b>Pastenym</b>
               </Typography>
               <Typography fontSize="sm">
@@ -148,14 +228,13 @@ function Texts() {
               </Typography>
               
             </div>
-
+           
             <Box sx={{ 
               display: 'flex', 
               whiteSpace: 'pre-wrap'
             }}>
-              {state.text ? state.text : <Button startDecorator={<CircularProgress variant="solid" thickness={2} />}>
-                                          Loading…
-                                          </Button>}
+              <Divider />
+              {state.text ? state.text : <Skeleton variant="rounded" width="100%" height={60} />}
             </Box>
 
             
