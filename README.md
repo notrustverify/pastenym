@@ -1,3 +1,5 @@
+[![Frontend deployment](https://github.com/notrustverify/pastenym/actions/workflows/node.js.yml/badge.svg)](https://github.com/notrustverify/pastenym/actions/workflows/node.js.yml)
+
 # pastenym
 
 This project is inspired from [pastebin](https://pastebin.com/) service.
