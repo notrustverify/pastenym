@@ -35,21 +35,20 @@ function ModeToggle() {
 class Header extends React.Component {
 
 
-  
 
-  render()
-  {
-  return (
-    <CssVarsProvider>
-<Breadcrumbs separator="›" aria-label="breadcrumbs">
-  <Link href="/"
-  underline="hover"
-  color="neutral"
-  fontSize="inherit"
-  >Home</Link>
-</Breadcrumbs>
-    </CssVarsProvider>
-  )
+
+  render() {
+    return (
+      <CssVarsProvider>
+        <Breadcrumbs separator="›" aria-label="breadcrumbs">
+          <Link href="/"
+            underline="hover"
+            color="neutral"
+            fontSize="inherit"
+          >Home</Link>
+        </Breadcrumbs>
+      </CssVarsProvider>
+    )
   }
 }
 
