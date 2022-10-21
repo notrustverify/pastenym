@@ -19,16 +19,16 @@ module.exports = {
   },
   mode: 'production',
   plugins: [
-    new HtmlWebpackPlugin({      
+    new HtmlWebpackPlugin({
       title: 'Pastenym',
       description: "Anonymous share text service powered by Nym mixnet",
       template: path.resolve(__dirname, './src/index.html'), // template file      
       filename: 'index.html', // output file   
-     }),
-     new CopyWebpackPlugin({
+    }),
+    new CopyWebpackPlugin({
       patterns: [
         {
-          from: path.resolve(__dirname,'node_modules/@nymproject/nym-client-wasm/*.(js|wasm)'),
+          from: path.resolve(__dirname, 'node_modules/@nymproject/nym-client-wasm/*.(js|wasm)'),
           to: '[name][ext]',
         },
       ],
@@ -37,43 +37,43 @@ module.exports = {
     new CleanWebpackPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new Dotenv(),
-     
+
+  ],
+  module: {
+    rules: [
+      // JavaScript 
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: ['babel-loader'],
+      },
+      // Images
+      {
+        test: /\.(?:ico|gif|png|jpg|jpeg)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'images/[name]-[hash][ext]'
+        }
+      },
+      {
+        test: /\.(png|jpg)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'images/[name]-[hash][ext]'
+        }
+      },
+      // Fonts and SVGs
+      {
+        test: /\.(woff(2)?|eot|ttf|otf|svg|)$/,
+        type: 'asset/inline',
+      },
+      // CSS, PostCSS, and Sass  
+      {
+        test: /\.(scss|css)$/,
+        use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader'],
+      },
     ],
-    module: {
-      rules: [   
-          // JavaScript 
-          {       
-            test: /\.js$/,
-            exclude: /node_modules/,
-            use: ['babel-loader'],      
-          },
-          // Images
-          {
-            test: /\.(?:ico|gif|png|jpg|jpeg)$/i,  
-            type: 'asset/resource',
-            generator: {
-              filename: 'images/[name]-[hash][ext]'
-            }
-          },
-          {
-            test: /\.(png|jpg)$/i,
-            type: 'asset/resource',
-            generator: {
-                filename: 'images/[name]-[hash][ext]'
-            }
-          },
-          // Fonts and SVGs
-          {
-            test: /\.(woff(2)?|eot|ttf|otf|svg|)$/,  
-            type: 'asset/inline',  
-          },
-          // CSS, PostCSS, and Sass  
-          {       
-            test: /\.(scss|css)$/,     
-            use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader'],    
-          },
-      ], 
-    },
+  },
   devServer: {
     historyApiFallback: true,
     static: {
@@ -84,11 +84,11 @@ module.exports = {
     hot: true,
     port: 8080,
   },
-  experiments: { 
+  experiments: {
     syncWebAssembly: true,
   },
   performance: {
     maxEntrypointSize: 1012000,
     maxAssetSize: 4212000
-},
+  },
 }
