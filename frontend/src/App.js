@@ -92,7 +92,6 @@ function App() {
     function displayReceived(message) {
         const content = message.message
         const replySurb = message.replySurb
-        console.log(content.length)
 
         if (content.length > 0) {
             if (content.includes('Text too long')) {
@@ -156,8 +155,6 @@ function App() {
     }
 
     const sendText = () => {
-        console.log('button click')
-
         if (text.length <= 100000) sendMessageTo('newText', text)
         else setOpen(true)
     }
