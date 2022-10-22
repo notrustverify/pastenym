@@ -5,6 +5,7 @@ import { CssVarsProvider, useColorScheme } from '@mui/joy/styles';
 import Button from '@mui/joy/Button';
 import Breadcrumbs from '@mui/joy/Breadcrumbs';
 import Link from '@mui/joy/Link';
+import HttpDetection from './components/HttpDetection'
 
 
 function ModeToggle() {
@@ -47,6 +48,8 @@ class Header extends React.Component {
             fontSize="inherit"
           >Home</Link>
         </Breadcrumbs>
+
+        { location.protocol == "https:" ? <HttpDetection /> : ''  }
       </CssVarsProvider>
     )
   }

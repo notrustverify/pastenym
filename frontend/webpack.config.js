@@ -9,7 +9,7 @@ const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 module.exports = {
   entry: {
     main: path.resolve(__dirname, './src/index.js'),
-    app: path.resolve(__dirname, './src/App.js')
+    app: path.resolve(__dirname, './src/UserInput.js')
     //worker: path.resolve(__dirname, './src/worker.js'),
     //bootstrap: path.resolve(__dirname, './src/bootstrap.js')
   },
@@ -80,8 +80,7 @@ module.exports = {
       directory: path.join(__dirname, './dist'),
     },
     open: false,
-    compress: true,
-    hot: true,
+    compress: false,
     port: 8080,
   },
   experiments: {
