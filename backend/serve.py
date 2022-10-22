@@ -79,7 +79,7 @@ class Serve:
                 # reply_surb = received_message["replySurb"]
             except websockets.WebSocketException as e:
                 print(e)
-                return
+                break
 
             try:
                 recipient = received_message['message'].split("/")[0]
@@ -90,7 +90,7 @@ class Serve:
                 reply_message = f"error parsing message, {e}"
                 print(reply_message)
                 Serve.createPayload(recipient, reply_message)
-                return
+                break
 
             reply = ""
 

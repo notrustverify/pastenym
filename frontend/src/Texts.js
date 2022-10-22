@@ -89,85 +89,95 @@ const joyTheme = extendJoyTheme()
 // joyTheme will deeply merge to muiTheme.
 const theme = deepmerge(muiTheme, joyTheme)
 
-// current limitation of rust-wasm for async stuff : (
-let client = null
+function withParams(Component) {
+    return props => <Component {...props} params={useParams()} />;
+  }
+
 let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER
-let self_address = null
 
-function Texts() {
-    // get param urlid from URL
-    const { urlId } = useParams()
+class Texts extends React.Component {
+    constructor(props) {
+        super(props)
 
-    const [state, setState] = React.useState({
-        urlId: null,
-        text: null,
-    })
-
-    const [wasm, setWasm] = React.useState(null)
-    const [loading, setLoading] = React.useState(false)
-    React.useEffect(() => {
-        let isMounted = true
-        // note mutable flag
-        const loadWasm = async () => {
-            try {
-                const wasm = await import('@nymproject/nym-client-wasm')
-                if (isMounted) {
-                    wasm.set_panic_hook()
-                    const validator = 'https://validator.nymtech.net/api'
-
-                    client = new wasm.NymClient(validator)
-
-                    const on_message = (msg) => displayReceived(msg)
-                    const on_connect = () =>
-                        console.log(
-                            'Established (and authenticated) gateway connection!'
-                        )
-
-                    client.set_on_gateway_connect(on_connect)
-                    client.set_on_message(on_message)
-
-                    // this is current limitation of wasm in rust - for async methods you can't take self my reference...
-                    // I'm trying to figure out if I can somehow hack my way around it, but for time being you have to re-assign
-                    // the object (it's the same one)
-                    client = await client.initial_setup()
-
-                    self_address = client.self_address()
-                    console.log(client.self_address())
-                    setWasm(client)
-                    await sendMessageTo('getText', self_address)
-                }
-
-                setLoading(true)
-            } finally {
-                setLoading(false)
-            }
+        this.state = {
+            client: null,
+            self_address: '',
+            text: null,
+            urlId: null,
         }
 
-        loadWasm().catch(console.error)
-
-        return () => {
-            isMounted = false
-        }
-    }, [])
-
-    async function sendMessageTo(cmd, self_address) {
-        const message = self_address + '/' + cmd + '/' + urlId
-
-        client = await client.send_message(message, pasteNymClientId)
+        this.sendText = this.sendText.bind(this)
     }
 
-    function displayReceived(message) {
+    displayReceived(message) {
         const content = message.message
         const replySurb = message.replySurb
-        console.log(content)
 
-        setState({
-            urlId: `${urlId}`,
+
+        this.setState({
             text: he.decode(content),
         })
     }
 
-    return (
+     componentDidMount() {
+        this.setState({
+            urlId: this.props.params.urlId
+        })
+
+
+        const loadWasm = async () => {
+            let client = null
+
+            const wasm = await import('@nymproject/nym-client-wasm')
+            wasm.set_panic_hook()
+            const validator = 'https://validator.nymtech.net/api'
+            client = new wasm.NymClient(validator)
+
+            const on_message = (message) => this.displayReceived(message)
+            const on_connect = () =>
+                console.log(
+                    'Established (and authenticated) gateway connection!'
+                )
+
+            client.set_on_gateway_connect(on_connect)
+            client.set_on_message(on_message)
+
+            // this is current limitation of wasm in rust - for async methods you can't take self my reference...
+            // I'm trying to figure out if I can somehow hack my way around it, but for time being you have to re-assign
+            // the object (it's the same one)
+            client = await client.initial_setup()
+            
+            this.setState({
+                client: client,
+                self_address: client.self_address()
+            })
+            
+        }
+
+        loadWasm().catch(console.error)
+
+        this.setState({
+            loading: true,
+        })
+
+      
+    }
+
+    componentWillUnmount() {}
+
+    sendText() {
+        this.sendMessageTo('getText',this.state.urlId)
+    }
+
+    //generate Uncaught (in promise) Error: null pointer passed to rust
+    async sendMessageTo(cmd,content) {
+        const message = this.state.self_address + '/' + cmd + '/' + content
+        await this.state.client.send_message(message, pasteNymClientId)
+    }
+
+
+    render() {
+        return (
         <CssVarsProvider theme={theme}>
             <header>
                 <Header />
@@ -201,8 +211,8 @@ function Texts() {
                           
                         }}>
                             <b>Client id</b>{' '}
-                            {wasm ? (
-                                self_address.split('@')[0].slice(0, 60) + '...'
+                            {this.state.client ? (
+                                this.state.self_address.split('@')[0].slice(0, 60) + '...'
                             ) : (
                                 <CircularProgress
                                     sx={{
@@ -222,8 +232,8 @@ function Texts() {
                           
                         }}>
                             <b>Connected Gateway</b>{' '}
-                            {wasm ? (
-                                self_address.split('@')[1]
+                            {this.state.client ? (
+                                this.state.self_address.split('@')[1]
                             ) : (
                                 <CircularProgress
                                     sx={{
@@ -238,14 +248,15 @@ function Texts() {
                         </Typography>
                     </div>
                     <Divider />
+                    {this.state.client ? this.sendText() : ''}
                     <Box
                         sx={{
                             display: 'flex',
                             whiteSpace: 'pre-wrap',
                         }}
                     >
-                        {state.text ? (
-                            state.text
+                        {this.state.text ? (
+                            this.state.text
                         ) : (
                             <Skeleton
                                 variant="rounded"
@@ -261,6 +272,7 @@ function Texts() {
             </footer>
         </CssVarsProvider>
     )
+                        }
 }
 
-export default Texts
+export default withParams(Texts)

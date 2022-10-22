@@ -14,7 +14,6 @@ import {withRouter} from './components/withRouter'
 import ErrorModal from './components/ErrorModal'
 
 
-// current limitation of rust-wasm for async stuff : (
 let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER
 
 class UserInput extends React.Component {
@@ -29,7 +28,6 @@ class UserInput extends React.Component {
             open: false,
         }
 
-        //this.navigate = useNavigate();
         this.sendText = this.sendText.bind(this)
 
     }
