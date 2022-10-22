@@ -40,7 +40,7 @@ class HttpDetection extends React.Component {
               Error: HTTPS will not work for now
             </Typography>
             <Typography fontSize="sm" sx={{ opacity: 0.8 }}>
-                Please use <Link href={"http:"+process.env.PUBLIC_URL} >HTTP</Link> version                
+                Please use <Link href={"http://paste.notrustverify.ch"} >HTTP</Link> version                
             </Typography>
           </div>
         </Alert>
