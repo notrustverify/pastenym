@@ -152,6 +152,7 @@ class Texts extends React.Component {
                 self_address: client.self_address()
             })
             
+            await this.sendMessageTo(client,'getText',this.state.urlId)
         }
 
         loadWasm().catch(console.error)
@@ -169,10 +170,14 @@ class Texts extends React.Component {
         this.sendMessageTo('getText',this.state.urlId)
     }
 
-    //generate Uncaught (in promise) Error: null pointer passed to rust
-    async sendMessageTo(cmd,content) {
-        const message = this.state.self_address + '/' + cmd + '/' + content
-        await this.state.client.send_message(message, pasteNymClientId)
+    // have to pass the client in parameter because setState update the client state after
+    async sendMessageTo(client,cmd,content) {
+        const message = client.self_address() + '/' + cmd + '/' + content
+        client = await client.send_message(message, pasteNymClientId)
+
+        this.setState({
+            client: client
+        })
     }
 
 
@@ -248,7 +253,7 @@ class Texts extends React.Component {
                         </Typography>
                     </div>
                     <Divider />
-                    {this.state.client ? this.sendText() : ''}
+                    
                     <Box
                         sx={{
                             display: 'flex',

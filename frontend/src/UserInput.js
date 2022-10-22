@@ -72,7 +72,11 @@ class UserInput extends React.Component {
     async sendMessageTo(cmd, content) {
         const message = this.state.self_address + '/' + cmd + '/' + content
 
-        await this.state.client.send_message(message, pasteNymClientId)
+        const client = await this.state.client.send_message(message, pasteNymClientId)
+
+        this.setState({
+            client: client
+        })
     }
 
     displayReceived(message) {
