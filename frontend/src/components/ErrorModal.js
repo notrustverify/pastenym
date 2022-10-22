@@ -53,10 +53,11 @@ class ErrorModal extends React.Component {
                             fontWeight="lg"
                             mb={1}
                         >
-                            Error
+                            Error with text
                         </Typography>
                         <Typography id="modal-desc" textColor="text.tertiary">
-                            Too many char. limit is 100000
+                            
+                            Text cannot be empty and limit is 100'000 char
                         </Typography>
                     </Sheet>
                 </Modal>

@@ -10,9 +10,8 @@ import Footer from './Footer'
 import Box from '@mui/joy/Box'
 import SendIcon from '@mui/icons-material/Send'
 import CircularProgress from '@mui/joy/CircularProgress'
-import {withRouter} from './components/withRouter'
+import { withRouter } from './components/withRouter'
 import ErrorModal from './components/ErrorModal'
-
 
 let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER
 
@@ -29,7 +28,6 @@ class UserInput extends React.Component {
         }
 
         this.sendText = this.sendText.bind(this)
-
     }
 
     componentDidMount() {
@@ -56,7 +54,7 @@ class UserInput extends React.Component {
 
             this.setState({
                 client: client,
-                self_address: client.self_address()
+                self_address: client.self_address(),
             })
         }
 
@@ -64,7 +62,6 @@ class UserInput extends React.Component {
         this.setState({
             loading: true,
         })
-
     }
 
     componentWillUnmount() {}
@@ -72,17 +69,20 @@ class UserInput extends React.Component {
     async sendMessageTo(cmd, content) {
         const message = this.state.self_address + '/' + cmd + '/' + content
 
-        const client = await this.state.client.send_message(message, pasteNymClientId)
+        const client = await this.state.client.send_message(
+            message,
+            pasteNymClientId
+        )
 
         this.setState({
-            client: client
+            client: client,
         })
     }
 
     displayReceived(message) {
         const content = message.message
         const replySurb = message.replySurb
-        
+
         if (content.length > 0) {
             if (content.toLowerCase().includes('text too long')) {
                 this.setState({
@@ -90,7 +90,7 @@ class UserInput extends React.Component {
                 })
             } else {
                 //use a wrapper, withRouter to use navigate hooks
-                this.props.navigate("/"+content)
+                this.props.navigate('/' + content)
             }
         } else {
             console.log(content)
@@ -98,7 +98,7 @@ class UserInput extends React.Component {
     }
 
     sendText() {
-        if (this.state.text.length <= 100000)
+        if (this.state.text.length <= 100000 && this.state.text.length > 0)
             this.sendMessageTo('newText', this.state.text)
         else
             this.setState({
@@ -114,7 +114,6 @@ class UserInput extends React.Component {
                     <Header />
                 </header>
                 <main>
-
                     <Sheet
                         sx={{
                             width: 'auto',
@@ -185,7 +184,7 @@ class UserInput extends React.Component {
                             </Typography>
                         </div>
                         {this.state.open ? <ErrorModal /> : ''}
-
+                      
                         <Textarea
                             sx={{}}
                             label="Text to share"
@@ -193,9 +192,11 @@ class UserInput extends React.Component {
                             minRows={10}
                             fullwidth="true"
                             required
+                            autoFocus
                             value={this.state.text}
+                            
                             onChange={(event) =>
-                                (this.setState({text: event.target.value}))
+                                this.setState({ text: event.target.value })
                             }
                             startDecorator={
                                 <Box sx={{ display: 'flex', gap: 0.5 }}></Box>
