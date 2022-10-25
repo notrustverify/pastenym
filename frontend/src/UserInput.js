@@ -26,7 +26,8 @@ class UserInput extends React.Component {
             text: '',
             loading: false,
             open: false,
-            urlId: null
+            urlId: null,
+            buttonSendClick: false
         }
 
         this.sendText = this.sendText.bind(this)
@@ -94,7 +95,8 @@ class UserInput extends React.Component {
                 //use a wrapper, withRouter to use navigate hooks
                 //this.props.navigate('/' + content)
                 this.setState({
-                    urlId: content
+                    urlId: content,
+                    buttonSendClick: false
                 })
                 
             }
@@ -105,12 +107,16 @@ class UserInput extends React.Component {
     }
 
     sendText() {
-        if (this.state.text.length <= 100000 && this.state.text.length > 0)
+        if (this.state.text.length <= 100000 && this.state.text.length > 0){
+            this.setState({
+                buttonSendClick: true
+            })
             this.sendMessageTo('newText', this.state.text)
-        else
+        } else {
             this.setState({
                 open: true,
             })
+        }
     }
 
     render() {
@@ -217,6 +223,7 @@ class UserInput extends React.Component {
                         />
                         <Button
                             disabled={this.state.client ? false : true}
+                            loading={this.state.buttonSendClick}
                             onClick={this.sendText}
                             endDecorator={<SendIcon />}
                             sx={{ mt: 1 /* margin top */ }}
