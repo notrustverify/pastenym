@@ -22,22 +22,41 @@ class SuccessUrlId extends React.Component {
         this.state = {
             urlId: null,
             open: false,
-            textButton: "Copy to clipboard"
+            textButton: 'Copy to clipboard',
         }
 
         this.handleSubmit = this.handleSubmit.bind(this)
-
     }
 
     handleSubmit() {
         try {
-            this.setState({ 
+            this.setState({
                 open: true,
-                textButton: "Copied"
+                textButton: 'Copied',
             })
-            navigator.clipboard.writeText(
-                'http://paste.notrustverify.ch/' + this.props.urlId
-            )
+            const textToCopy = 'http://paste.notrustverify.ch/' + this.props.urlId
+            //from  https://stackoverflow.com/a/65996386
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(
+                    textToCopy
+                )
+            } else {
+                // text area method
+                let textArea = document.createElement('textarea')
+                textArea.value = textToCopy
+                // make the textarea out of viewport
+                textArea.style.position = 'fixed'
+                textArea.style.left = '-999999px'
+                textArea.style.top = '-999999px'
+                document.body.appendChild(textArea)
+                textArea.focus()
+                textArea.select()
+                return new Promise((res, rej) => {
+                    // here the magic happens
+                    document.execCommand('copy') ? res() : rej()
+                    textArea.remove()
+                })
+            }
         } catch (err) {
             console.log(err)
         }
@@ -65,45 +84,44 @@ class SuccessUrlId extends React.Component {
                     </Typography>
                     <Typography fontSize="sm" sx={{ opacity: 0.8 }}>
                         Your text is accessible at{' '}
-                        
-                        {'http://paste.notrustverify.ch/' + this.props.urlId}{'   '}
-
+                        {'http://paste.notrustverify.ch/' + this.props.urlId}
+                        {'   '}
                         <ClickAwayListener
                             onClickAway={() => {
                                 this.setState({
                                     open: false,
-                                    textButton: "Copy to clipboard"
+                                    textButton: 'Copy to clipboard',
                                 })
                             }}
                         >
                             {
-                            //To handle hover and on click tooltip are used
+                                //To handle hover and on click tooltip are used
                             }
                             <Tooltip title={this.state.textButton}>
-                            <Tooltip
-                                popperprops={{
-                                    disablePortal: true,
-                                }}
-                                onClose={() => {
-                                    this.setState({ 
-                                        open: false,
-                                        textButton: "Copy to clipboard"
-                                    })
-                                }}
-                                open={this.state.open}
-                                disableFocusListener
-                                disableTouchListener
-                                title={this.state.textButton}
-                            >
-                                <IconButton
-                                    variant="plain"
-                                    color="neutral"
-                                    onClick={this.handleSubmit}
-                                    size="sm"
+                                <Tooltip
+                                    popperprops={{
+                                        disablePortal: true,
+                                    }}
+                                    onClose={() => {
+                                        this.setState({
+                                            open: false,
+                                            textButton: 'Copy to clipboard',
+                                        })
+                                    }}
+                                    open={this.state.open}
+                                    disableFocusListener
+                                    disableTouchListener
+                                    title={this.state.textButton}
                                 >
-                                    <ContentCopy  />
-                                </IconButton>
-                            </Tooltip>
+                                    <IconButton
+                                        variant="plain"
+                                        color="neutral"
+                                        onClick={this.handleSubmit}
+                                        size="sm"
+                                    >
+                                        <ContentCopy />
+                                    </IconButton>
+                                </Tooltip>
                             </Tooltip>
                         </ClickAwayListener>
                     </Typography>
