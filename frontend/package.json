@@ -16,7 +16,7 @@
     "@iconify/icons-simple-icons": "^1.2.30",
     "@iconify/react": "^4.0.0",
     "@mui/icons-material": "^5.10.9",
-    "@mui/joy": "^5.0.0-alpha.49",
+    "@mui/joy": "^5.0.0-alpha.51",
     "@mui/lab": "^5.0.0-alpha.103",
     "@mui/material": "^5.10.10",
     "@nymproject/nym-client-wasm": "^1.0.0",

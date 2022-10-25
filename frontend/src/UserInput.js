@@ -12,6 +12,7 @@ import SendIcon from '@mui/icons-material/Send'
 import CircularProgress from '@mui/joy/CircularProgress'
 import { withRouter } from './components/withRouter'
 import ErrorModal from './components/ErrorModal'
+import SuccessUrlId from './components/SuccessUrlId'
 
 let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER
 
@@ -25,6 +26,7 @@ class UserInput extends React.Component {
             text: '',
             loading: false,
             open: false,
+            urlId: null
         }
 
         this.sendText = this.sendText.bind(this)
@@ -90,11 +92,16 @@ class UserInput extends React.Component {
                 })
             } else {
                 //use a wrapper, withRouter to use navigate hooks
-                this.props.navigate('/' + content)
+                //this.props.navigate('/' + content)
+                this.setState({
+                    urlId: content
+                })
+                
             }
         } else {
             console.log(content)
         }
+        
     }
 
     sendText() {
@@ -183,6 +190,7 @@ class UserInput extends React.Component {
                                 )}
                             </Typography>
                         </div>
+                        {this.state.urlId ? <SuccessUrlId urlId={this.state.urlId} /> : ''}
                         {this.state.open ? <ErrorModal /> : ''}
                       
                         <Textarea
