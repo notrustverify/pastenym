@@ -7,7 +7,7 @@ The main goal is to offer a solution for sharing text with [Nym](https://nymtech
 to offer full anonymity, even on metadata level
 
 #### Demo
-Get shared text: [http://paste.notrustverify.ch/zXruebin](http://paste.notrustverify.ch/?zXruebin)
+Get shared text: [http://paste.notrustverify.ch/zXruebin](http://paste.notrustverify.ch/zXruebin)
 
 Share a text: [http://paste.notrustverify.ch/](http://paste.notrustverify.ch/)
 
