@@ -13,6 +13,8 @@ services:
       context: ./backend
     restart: unless-stopped
     env_file: env.docker
+    volumes:
+      - ./data/data.db:data/data.db
     depends_on:
       - nym-client
   nym-client:
