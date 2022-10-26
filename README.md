@@ -40,7 +40,7 @@ which IP address shared this information and therefore to find the person**
 1. Download [nym-client](https://github.com/nymtech/nym/releases/tag/nym-binaries-1.0.2)
 2. Give exec permissions and init the client
 ```bash
-chmod +x nym-client
+chmod u+x nym-client
 ./nym-client init --id pastenym --gateway EBT8jTD8o4tKng2NXrrcrzVhJiBnKpT1bJy5CMeArt2w
 ```
 3. Run the client `./nym-client run --id pastenym`
@@ -50,8 +50,9 @@ It uses [pipenv](https://pipenv.pypa.io/en/latest/install/)
 
 1. Go to `backend/`
 2. `pipenv shell` to start the python env
-3. `python3 -c "from db import *; create_tables()" ` to init the DB
-4. `python main.py` to start the service
+3. `pipenv install` to install the dependancies from the PipFile
+4. `python3 -c "from db import *; create_tables()" ` to init the DB
+5. `python main.py` to start the service
 
 ### Frontend
 NodeJS and npm are used
@@ -69,7 +70,7 @@ NodeJS and npm are used
 2. Init the nym-client and copy files 
 ```bash
 cd nym-client
-chmod +x nym-client
+chmod u+x nym-client
 ./nym-client init --id docker-client --gateway EBT8jTD8o4tKng2NXrrcrzVhJiBnKpT1bJy5CMeArt2w
 cp -r ~/.nym/clients/docker-client nym-data/clients
 ```
