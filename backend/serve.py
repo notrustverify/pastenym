@@ -1,23 +1,19 @@
 import asyncio
 import json
-import websockets
+import websocket
 from pasteNym import PasteNym
 import utils
+import rel
 
 self_address_request = json.dumps({
     "type": "selfAddress"
 })
 
-pasteNym = PasteNym()
+CMD_NEW_TEXT = "newText"
+CMD_GET_TEXT = "getText"
 
 
 class Serve:
-
-    def __init__(self):
-        print("Start serve")
-
-    def start(self):
-        asyncio.run(self.run())
 
     @staticmethod
     def createPayload(recipient, reply_message):
@@ -29,24 +25,70 @@ class Serve:
             # "replySurb": reply_surb
         })
 
-    def getText(self, recipient, message):
-        text = pasteNym.getTextById(message)
-        try:
-            if text is not None:
-                reply_message = text
-            else:
-                reply_message = "Text not found"
-        except IndexError as e:
-            print(e)
-            reply_message = "error"
-        print(reply_message)
+    def __init__(self):
+        url = f"ws://{utils.NYM_CLIENT_ADDR}:1977"
+        self.firstRun = True
+        self.pasteNym = PasteNym()
 
-        return Serve.createPayload(recipient, reply_message)
+        websocket.enableTrace(False)
+        self.ws = websocket.WebSocketApp(url,
+                                         on_message=lambda ws, msg: self.on_message(
+                                             ws, msg),
+                                         on_error=lambda ws, msg: self.on_error(
+                                             ws, msg),
+                                         on_close=lambda ws:     self.on_close(
+                                             ws),
+                                         on_open=lambda ws:     self.on_open(ws))
+
+        # Set dispatcher to automatic reconnection
+        self.ws.run_forever(dispatcher=rel)
+        rel.signal(2, rel.abort)  # Keyboard Interrupt
+        rel.dispatch()
+
+    def on_open(self, ws):
+        self.ws.send(self_address_request)
+
+    def on_error(self, ws, message):
+        print(f"Error: {message}")
+
+    def on_close(self, ws):
+        print(f"Connection to nym-client closed")
+
+    def on_message(self, ws, message):
+        if self.firstRun:
+            self_address = json.loads(message)
+            print("our address is: {}".format(self_address["address"]))
+            self.firstRun = False
+            return
+
+        received_message = json.loads(message)
+        print(received_message)
+
+        try:
+            recipient = received_message['message'].split("/")[0]
+            command = received_message['message'].split("/")[1]
+            message = received_message['message'].split("/")[2]
+        except IndexError as e:
+            err_msg = "error parsing message, {e}"
+            print(err_msg)
+            reply_message=err_msg
+            Serve.createPayload(recipient, reply_message)
+            return
+
+        reply = ""
+
+        if command == CMD_NEW_TEXT:
+            reply = self.newText(recipient, message)
+        elif command == CMD_GET_TEXT:
+            reply = self.getText(recipient, message)
+
+        print(f"sending {reply} over the mix network. Cmd {command}")
+        self.ws.send(reply)
 
     def newText(self, recipient, message):
 
         if len(message) <= utils.PASTE_MAX_LENGTH:
-            urlId = pasteNym.newText(message)
+            urlId = self.pasteNym.newText(message)
 
             try:
                 if len(urlId) > 0:
@@ -59,57 +101,17 @@ class Serve:
         else:
             reply_message = f"Text too long. Max is {utils.PASTE_MAX_LENGTH}"
 
-        print(reply_message)
-
         return Serve.createPayload(recipient, reply_message)
 
-    async def send_text_with_reply(self, websocket):
-        accessibleData = "newText"
-        getTextCmd = "getText"
+    def getText(self, recipient, message):
+        text = self.pasteNym.getTextById(message)
+        try:
+            if text is not None:
+                reply_message = text
+            else:
+                reply_message = "Text not found"
+        except IndexError as e:
+            print(e)
+            reply_message = "error"
 
-        await websocket.send(self_address_request)
-        self_address = json.loads(await websocket.recv())
-        # use the received surb to send an anonymous reply!
-
-        print("our address is: {}".format(self_address["address"]))
-        while True:
-            try:
-                received_message = json.loads(await websocket.recv())
-                print(received_message)
-                # reply_surb = received_message["replySurb"]
-            except websockets.WebSocketException as e:
-                print(e)
-                break
-
-            try:
-                recipient = received_message['message'].split("/")[0]
-                command = received_message['message'].split("/")[1]
-                message = received_message['message'].split("/")[2]
-            except IndexError as e:
-                print(f"error parsing message, {e}")
-                reply_message = f"error parsing message, {e}"
-                print(reply_message)
-                Serve.createPayload(recipient, reply_message)
-                break
-
-            reply = ""
-
-            if command == accessibleData:
-                reply = self.newText(recipient, message)
-            elif command == getTextCmd:
-                reply = self.getText(recipient, message)
-
-            print("sending '{}' over the mix network...".format(reply))
-            await websocket.send(reply)
-
-            '''
-                print("waiting to receive a message from the mix network...")
-                received_message = await websocket.recv()
-                print("received '{}' from the mix network".format(received_message))
-            '''
-
-    async def run(self):
-        url = f"ws://{utils.NYM_CLIENT_ADDR}:1977"
-        async with websockets.connect(url) as ws:
-            await self.send_text_with_reply(ws)
-            await asyncio.Future()  # run forever
+        return Serve.createPayload(recipient, reply_message)

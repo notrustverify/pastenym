@@ -7,6 +7,8 @@ name = "pypi"
 peewee = "3.15.3"
 python-dotenv = "0.21.0"
 websockets = "10.3"
+websocket-client = "1.4.1"
+rel = "*"
 
 [dev-packages]
 
