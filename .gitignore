@@ -420,7 +420,7 @@ cython_debug/
 nym-client/nym-data/clients/*
 !nym-client/nym-data/clients/.gitkeep
 **data.db
-*.env.*
+*.env
 nym-client/nym-client
 pastenym
 
