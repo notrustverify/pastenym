@@ -206,8 +206,12 @@ class Texts extends React.Component {
                     variant="outlined"
                 >
                     <div>
-                        <Typography level="h4">
-                            <b>Pastenym</b>
+                        <Typography level="h4" component="h1" sx={{
+                                    overflow: 'hidden',
+                                    whiteSpace: 'nowrap',
+                                    textOverflow: 'ellipsis',
+                                }}>
+                            <b>Pastenym - anon text sharing service</b>
                         </Typography>
                         <Typography fontSize="sm" sx={{
                           overflow: "hidden",
