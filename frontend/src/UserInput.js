@@ -144,9 +144,14 @@ class UserInput extends React.Component {
                         variant="outlined"
                     >
                         <div>
-                            <Typography level="h4" component="h1">
+                            <Typography level="h4" component="h1" sx={{
+                                    overflow: 'hidden',
+                                    whiteSpace: 'nowrap',
+                                    textOverflow: 'ellipsis',
+                                }}>
                                 <b>Pastenym - anon text sharing service</b>
                             </Typography>
+
                             <Typography
                                 fontSize="sm"
                                 sx={{
@@ -198,10 +203,16 @@ class UserInput extends React.Component {
                         </div>
                         {this.state.urlId ? <SuccessUrlId urlId={this.state.urlId} /> : ''}
                         {this.state.open ? <ErrorModal /> : ''}
-                      
+                        <Typography fontSize="sm" sx={{
+                                    overflow: 'hidden',
+                                    whiteSpace: 'nowrap',
+                                    textOverflow: 'ellipsis',
+                                }} >
+                                <b>New share</b>
+                            </Typography>
                         <Textarea
                             sx={{}}
-                            label="Text to share"
+                            label="New paste"
                             placeholder="Type in here…"
                             minRows={10}
                             fullwidth="true"
