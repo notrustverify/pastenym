@@ -145,7 +145,7 @@ class UserInput extends React.Component {
                     >
                         <div>
                             <Typography level="h4" component="h1">
-                                <b>Pastenym</b>
+                                <b>Pastenym - anon text sharing service</b>
                             </Typography>
                             <Typography
                                 fontSize="sm"
