@@ -16,7 +16,7 @@ Share a text: [http://paste.notrustverify.ch/](http://paste.notrustverify.ch/)
 
 ### Architecture
 
-<img src="./resources/img/nym-platform.png" alt="drawing" width="30%"/>
+<img src="./resources/img/nym-platform.png" alt="drawing" width="50%"/>
 
 ## How pastenym service will use Nym product
 Your text is sent to a client which is connected to the Nym network and which stores it in a database (eventually a more distributed solution will be considered),
@@ -26,9 +26,6 @@ Your text is sent to a client which is connected to the Nym network and which st
 This system allows you to share information while respecting your privacy by protecting your data and metadata.
 
 On the side of No Trust Verify we only see an anonymous id when sending the text, and therefore impossible to know who is behind and from where the data was sent.
-
-**One point we need to work on is how to avoid the correlation between the connection to the website and the reception of the text because there is a possibility to find out
-which IP address shared this information and therefore to find the person**
 
 ### Schema
 
