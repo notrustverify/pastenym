@@ -51,6 +51,7 @@ class Serve:
 
     def on_error(self, ws, message):
         print(f"Error: {message}")
+        exit()
         
 
     def on_close(self, ws):

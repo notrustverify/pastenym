@@ -21,7 +21,7 @@ class PasteNym:
                 urlId = utils.generateRandomString(self.idLength)
 
             # text is a mandatory field
-            if data.get('text') and typeof(data.get('text')) == str:
+            if data.get('text') and type(data.get('text')) == str:
                 text = data.get('text')
             else:
                 return None
