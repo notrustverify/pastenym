@@ -39,12 +39,12 @@ class BaseModel(Model):
         finally:
             self.close()
 
-    def insertText(self, text, url_id):
+    def insertText(self, text, url_id,private=True):
         self.connect()
 
         try:
             with database.atomic():
-                idInsert = Text.insert(text=text, url_id=url_id).execute()
+                idInsert = Text.insert(text=text, url_id=url_id,is_private=private).execute()
 
                 return list(Text.select().where(Text.id == idInsert).dicts())
         except IntegrityError as e:
@@ -61,11 +61,15 @@ class BaseModel(Model):
 
         try:
             with database.atomic():
-                data = Text.select(Text.text).where(Text.url_id == url_id).dicts()
+
+                Text.update(num_view=Text.num_view+1).where(Text.url_id == url_id).execute()
+
+                data = Text.select(Text.text,Text.num_view,Text.created_on).where(Text.url_id == url_id).dicts()
 
                 if len(data) > 0:
-                    return data[0].get('text')
+                    return data[0]
                 return None
+
         except IntegrityError as e:
             logHandler.exception(e)
             return False
@@ -81,7 +85,7 @@ class BaseModel(Model):
         try:
             with database.atomic():
                 return None
-
+        
         except IntegrityError as e:
             print(e)
             print(traceback.format_exc())
@@ -352,10 +356,12 @@ class Text(BaseModel):
         db_table = 'texts'
 
     text = TextField()
-    url_id = TextField()
+    url_id = TextField(unique=True)
     expiration_time = TimestampField(null=True)
     author = TextField(null=True)
     password_protected = TextField(null=True)
+    num_view = IntegerField(default=0)
+    is_private = BooleanField(null=True)
 
     created_on = DateTimeField(default=datetime.utcnow)
     updated_on = DateTimeField(default=datetime.utcnow)
@@ -363,4 +369,4 @@ class Text(BaseModel):
 
 def create_tables():
     with database:
-        database.create_tables([Text])
+        database.create_tables([Text])   

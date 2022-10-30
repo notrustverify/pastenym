@@ -24,6 +24,7 @@ class UserInput extends React.Component {
             client: null,
             self_address: '',
             text: '',
+            textError: null,
             loading: false,
             open: false,
             urlId: null,
@@ -69,27 +70,15 @@ class UserInput extends React.Component {
 
     componentWillUnmount() {}
 
-    async sendMessageTo(cmd, content) {
-        const message = this.state.self_address + '/' + cmd + '/' + content
-
-        const client = await this.state.client.send_message(
-            message,
-            pasteNymClientId
-        )
-
-        this.setState({
-            client: client,
-        })
-    }
-
     displayReceived(message) {
         const content = message.message
         const replySurb = message.replySurb
 
         if (content.length > 0) {
-            if (content.toLowerCase().includes('text too long')) {
+            if (content.toLowerCase().includes('error')) {
                 this.setState({
                     open: true,
+                    textError: content
                 })
             } else {
                 //use a wrapper, withRouter to use navigate hooks
@@ -106,16 +95,42 @@ class UserInput extends React.Component {
         
     }
 
+    async sendMessageTo(content) {
+
+        const client = await this.state.client.send_message(
+            content,
+            pasteNymClientId
+        )
+
+        this.setState({
+            client: client,
+        })
+    }
+
     sendText() {
         if (this.state.text.length <= 100000 && this.state.text.length > 0){
+
             this.setState({
                 buttonSendClick: true
             })
-            this.sendMessageTo('newText', this.state.text)
+            
+            //as soon SURB will be implemented in wasm client, we will use it
+           const data = {
+                event: 'newText',
+                sender: this.state.self_address,
+                data: {
+                    tex:this.state.text,
+                    private: true
+                }
+            }
+            this.sendMessageTo(JSON.stringify(data))
+
         } else {
+
             this.setState({
                 open: true,
             })
+
         }
     }
 
@@ -202,7 +217,7 @@ class UserInput extends React.Component {
                             </Typography>
                         </div>
                         {this.state.urlId ? <SuccessUrlId urlId={this.state.urlId} /> : ''}
-                        {this.state.open ? <ErrorModal /> : ''}
+                        {this.state.open ? <ErrorModal textError={this.state.errorText}/> : ''}
                         <Typography fontSize="sm" sx={{
                                     overflow: 'hidden',
                                     whiteSpace: 'nowrap',

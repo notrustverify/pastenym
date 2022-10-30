@@ -5,6 +5,7 @@ from os.path import exists
 if __name__ == '__main__':
 
     if not(exists("./data/data.db")):
+        print("Create database done")
         db.create_tables()
 
     # init and start the backend server
