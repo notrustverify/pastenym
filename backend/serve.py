@@ -4,6 +4,7 @@ import websocket
 from pasteNym import PasteNym
 import utils
 import rel
+from datetime import datetime
 
 self_address_request = json.dumps({
     "type": "selfAddress"
@@ -50,6 +51,8 @@ class Serve:
 
     def on_error(self, ws, message):
         print(f"Error: {message}")
+        exit()
+        
 
     def on_close(self, ws):
         print(f"Connection to nym-client closed")
@@ -64,25 +67,30 @@ class Serve:
         received_message = json.loads(message)
         print(received_message)
 
+        # we received the data in a json
         try:
-            recipient = received_message['message'].split("/")[0]
-            command = received_message['message'].split("/")[1]
-            message = received_message['message'].split("/")[2]
-        except IndexError as e:
+            received_data = json.loads(received_message['message'])
+            recipient = received_data['sender']
+            event = received_data['event']
+            data = received_data['data']
+
+        except (IndexError, KeyError, json.decoder.JSONDecodeError) as e:
             err_msg = "error parsing message, {e}"
             print(err_msg)
-            reply_message=err_msg
+            reply_message = err_msg
             Serve.createPayload(recipient, reply_message)
             return
 
         reply = ""
 
-        if command == CMD_NEW_TEXT:
-            reply = self.newText(recipient, message)
-        elif command == CMD_GET_TEXT:
-            reply = self.getText(recipient, message)
+        if event == CMD_NEW_TEXT:
+            reply = self.newText(recipient, data)
+        elif event == CMD_GET_TEXT:
+            reply = self.getText(recipient, data)
+        else:
+            reply = f"Error event {event} not found"
 
-        print(f"sending {reply} over the mix network. Cmd {command}")
+        print(f"sending {reply} over the mix network. Cmd {event}")
         self.ws.send(reply)
 
     def newText(self, recipient, message):
@@ -90,26 +98,35 @@ class Serve:
         if len(message) <= utils.PASTE_MAX_LENGTH:
             urlId = self.pasteNym.newText(message)
 
-            try:
-                if len(urlId) > 0:
-                    reply_message = urlId[0].get('url_id')
-                else:
+            if urlId is not None:
+                try:
+                    if len(urlId) > 0:
+                        reply_message = urlId[0].get('url_id')
+                    else:
+                        reply_message = "error"
+                except IndexError as e:
+                    print(e)
                     reply_message = "error"
-            except IndexError as e:
-                print(e)
-                reply_message = "error"
+            else:
+                reply_message = f"Error with text to share"
         else:
-            reply_message = f"Text too long. Max is {utils.PASTE_MAX_LENGTH}"
+            reply_message = f"Error text too long. Max is {utils.PASTE_MAX_LENGTH}"
 
         return Serve.createPayload(recipient, reply_message)
 
     def getText(self, recipient, message):
         text = self.pasteNym.getTextById(message)
+
         try:
             if text is not None:
-                reply_message = text
+
+                # append a Z to be in iso format that JS Date can understand
+                text['created_on'] = datetime.isoformat(
+                    text.get('created_on'))+'Z'
+                reply_message = json.dumps(text, default=str)
+
             else:
-                reply_message = "Text not found"
+                reply_message = json.dumps({"error": "text not found"})
         except IndexError as e:
             print(e)
             reply_message = "error"

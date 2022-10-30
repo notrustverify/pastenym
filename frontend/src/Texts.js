@@ -17,6 +17,9 @@ import { deepmerge } from '@mui/utils'
 import { experimental_extendTheme as extendMuiTheme } from '@mui/material/styles'
 import colors from '@mui/joy/colors'
 import Skeleton from '@mui/material/Skeleton'
+import InfoOutlined from '@mui/icons-material/InfoOutlined'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import TextStats from './components/TextStats'
 
 const muiTheme = extendMuiTheme({
     // This is required to point to `var(--joy-*)` because we are using `CssVarsProvider` from Joy UI.
@@ -90,8 +93,8 @@ const joyTheme = extendJoyTheme()
 const theme = deepmerge(muiTheme, joyTheme)
 
 function withParams(Component) {
-    return props => <Component {...props} params={useParams()} />;
-  }
+    return (props) => <Component {...props} params={useParams()} />
+}
 
 let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER
 
@@ -103,27 +106,33 @@ class Texts extends React.Component {
             client: null,
             self_address: '',
             text: null,
+            num_view: null,
             urlId: null,
+            created_on: null,
         }
-
-        this.sendText = this.sendText.bind(this)
     }
 
     displayReceived(message) {
-        const content = message.message
+        const data = JSON.parse(message.message)
         const replySurb = message.replySurb
 
-
-        this.setState({
-            text: he.decode(content),
-        })
+        if (!data.hasOwnProperty('error')) {
+            this.setState({
+                text: he.decode(data['text']),
+                num_view: data['num_view'],
+                created_on: data['created_on'],
+            })
+        } else {
+            this.setState({
+                text: he.decode(data['error']),
+            })
+        }
     }
 
-     componentDidMount() {
+    componentDidMount() {
         this.setState({
-            urlId: this.props.params.urlId
+            urlId: this.props.params.urlId,
         })
-
 
         const loadWasm = async () => {
             let client = null
@@ -146,13 +155,20 @@ class Texts extends React.Component {
             // I'm trying to figure out if I can somehow hack my way around it, but for time being you have to re-assign
             // the object (it's the same one)
             client = await client.initial_setup()
-            
+
             this.setState({
                 client: client,
-                self_address: client.self_address()
+                self_address: client.self_address(),
             })
-            
-            await this.sendMessageTo(client,'getText',this.state.urlId)
+
+            const data = {
+                event: 'getText',
+                sender: client.self_address(),
+                data: {
+                    urlId: this.state.urlId
+                }
+            }
+            await this.sendMessageTo(client, JSON.stringify(data))
         }
 
         loadWasm().catch(console.error)
@@ -160,128 +176,140 @@ class Texts extends React.Component {
         this.setState({
             loading: true,
         })
-
-      
     }
 
     componentWillUnmount() {}
 
-    sendText() {
-        this.sendMessageTo('getText',this.state.urlId)
-    }
 
     // have to pass the client in parameter because setState update the client state after
-    async sendMessageTo(client,cmd,content) {
-        const message = client.self_address() + '/' + cmd + '/' + content
+    async sendMessageTo(client, message) {
         client = await client.send_message(message, pasteNymClientId)
 
         this.setState({
-            client: client
+            client: client,
         })
     }
 
-
     render() {
         return (
-        <CssVarsProvider theme={theme}>
-            <header>
-                <Header />
-            </header>
-            <main>
-                <Sheet
-                    sx={{
-                        width: 'auto',
-                        height: '100%',
-                        borderRadius: 'sm',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 2,
-                        boxShadow: 'md',
-                        mx: 4,
-                        px: 3,
-                        my: 4, // margin top & botom
-                        py: 3, // padding top & bottom
-                        
-                    }}
-                    variant="outlined"
-                >
-                    <div>
-                        <Typography level="h4" component="h1" sx={{
+            <CssVarsProvider theme={theme}>
+                <header>
+                    <Header />
+                </header>
+                <main>
+                    <Sheet
+                        sx={{
+                            width: 'auto',
+                            height: '100%',
+                            borderRadius: 'sm',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2,
+                            boxShadow: 'md',
+                            mx: 4,
+                            px: 3,
+                            my: 4, // margin top & botom
+                            py: 3, // padding top & bottom
+                        }}
+                        variant="outlined"
+                    >
+                        <div>
+                            <Typography
+                                level="h4"
+                                component="h1"
+                                sx={{
                                     overflow: 'hidden',
                                     whiteSpace: 'nowrap',
                                     textOverflow: 'ellipsis',
-                                }}>
-                            <b>Pastenym - anon text sharing service</b>
-                        </Typography>
-                        <Typography fontSize="sm" sx={{
-                          overflow: "hidden",
-                          whiteSpace: 'nowrap',
-                          textOverflow: 'ellipsis',
-                          
-                        }}>
-                            <b>Client id</b>{' '}
-                            {this.state.client ? (
-                                this.state.self_address.split('@')[0].slice(0, 60) + '...'
+                                }}
+                            >
+                                <b>Pastenym - anon text sharing service</b>
+                            </Typography>
+                            <Typography
+                                fontSize="sm"
+                                sx={{
+                                    overflow: 'hidden',
+                                    whiteSpace: 'nowrap',
+                                    textOverflow: 'ellipsis',
+                                }}
+                            >
+                                <b>Client id</b>{' '}
+                                {this.state.client ? (
+                                    this.state.self_address
+                                        .split('@')[0]
+                                        .slice(0, 60) + '...'
+                                ) : (
+                                    <CircularProgress
+                                        sx={{
+                                            '--CircularProgress-size': '20px',
+                                            '--CircularProgress-track-thickness':
+                                                '3px',
+                                            '--CircularProgress-progress-thickness':
+                                                '3px',
+                                        }}
+                                    />
+                                )}
+                            </Typography>
+                            <Typography
+                                fontSize="sm"
+                                sx={{
+                                    overflow: 'hidden',
+                                    whiteSpace: 'nowrap',
+                                    textOverflow: 'ellipsis',
+                                }}
+                            >
+                                <b>Connected Gateway</b>{' '}
+                                {this.state.client ? (
+                                    this.state.self_address.split('@')[1]
+                                ) : (
+                                    <CircularProgress
+                                        sx={{
+                                            '--CircularProgress-size': '20px',
+                                            '--CircularProgress-track-thickness':
+                                                '3px',
+                                            '--CircularProgress-progress-thickness':
+                                                '3px',
+                                        }}
+                                    />
+                                )}
+                            </Typography>
+                        </div>
+
+                        <Divider />
+                        <div>
+                            {this.state.num_view ? (
+                                <TextStats
+                                    num_view={this.state.num_view}
+                                    created_on={this.state.created_on}
+                                />
                             ) : (
-                                <CircularProgress
-                                    sx={{
-                                        '--CircularProgress-size': '20px',
-                                        '--CircularProgress-track-thickness':
-                                            '3px',
-                                        '--CircularProgress-progress-thickness':
-                                            '3px',
-                                    }}
+                                ''
+                            )}
+                        </div>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                whiteSpace: 'pre-wrap',
+                            }}
+                        >
+                            {this.state.text ? (
+                                this.state.text
+                            ) : (
+                                <Skeleton
+                                    variant="rounded"
+                                    width="100%"
+                                    height={60}
                                 />
                             )}
-                        </Typography>
-                        <Typography fontSize="sm" sx={{
-                          overflow: "hidden",
-                          whiteSpace: 'nowrap',
-                          textOverflow: 'ellipsis',
-                          
-                        }}>
-                            <b>Connected Gateway</b>{' '}
-                            {this.state.client ? (
-                                this.state.self_address.split('@')[1]
-                            ) : (
-                                <CircularProgress
-                                    sx={{
-                                        '--CircularProgress-size': '20px',
-                                        '--CircularProgress-track-thickness':
-                                            '3px',
-                                        '--CircularProgress-progress-thickness':
-                                            '3px',
-                                    }}
-                                />
-                            )}
-                        </Typography>
-                    </div>
-                    <Divider />
-                    
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            whiteSpace: 'pre-wrap',
-                        }}
-                    >
-                        {this.state.text ? (
-                            this.state.text
-                        ) : (
-                            <Skeleton
-                                variant="rounded"
-                                width="100%"
-                                height={60}
-                            />
-                        )}
-                    </Box>
-                </Sheet>
-            </main>
-            <footer>
-                <Footer />
-            </footer>
-        </CssVarsProvider>
-    )
-                        }
+                        </Box>
+                    </Sheet>
+                </main>
+                <footer>
+                    <Footer />
+                </footer>
+            </CssVarsProvider>
+        )
+    }
 }
 
 export default withParams(Texts)
