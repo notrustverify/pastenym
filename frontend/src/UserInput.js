@@ -119,7 +119,7 @@ class UserInput extends React.Component {
                 event: 'newText',
                 sender: this.state.self_address,
                 data: {
-                    tex:this.state.text,
+                    text:this.state.text,
                     private: true
                 }
             }
@@ -217,7 +217,7 @@ class UserInput extends React.Component {
                             </Typography>
                         </div>
                         {this.state.urlId ? <SuccessUrlId urlId={this.state.urlId} /> : ''}
-                        {this.state.open ? <ErrorModal textError={this.state.errorText}/> : ''}
+                        {this.state.open ? <ErrorModal textError={this.state.textError}/> : ''}
                         <Typography fontSize="sm" sx={{
                                     overflow: 'hidden',
                                     whiteSpace: 'nowrap',

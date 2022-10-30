@@ -107,7 +107,7 @@ class Serve:
                     print(e)
                     reply_message = "error"
             else:
-                reply_message = f"Error with message"
+                reply_message = f"Error with text to share"
         else:
             reply_message = f"Error text too long. Max is {utils.PASTE_MAX_LENGTH}"
 
