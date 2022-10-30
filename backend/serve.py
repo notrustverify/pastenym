@@ -65,6 +65,7 @@ class Serve:
             return
 
         received_message = json.loads(message)
+        recipient = None
         print(received_message)
 
         # we received the data in a json
@@ -82,16 +83,19 @@ class Serve:
             return
 
         reply = ""
+    
+        if recipient is not None:
+            if event == CMD_NEW_TEXT:
+                reply = self.newText(recipient, data)
+            elif event == CMD_GET_TEXT:
+                reply = self.getText(recipient, data)
+            else:
+                reply = f"Error event {event} not found"
 
-        if event == CMD_NEW_TEXT:
-            reply = self.newText(recipient, data)
-        elif event == CMD_GET_TEXT:
-            reply = self.getText(recipient, data)
+            print(f"sending {reply} over the mix network. Cmd {event}")
+            self.ws.send(reply)
         else:
-            reply = f"Error event {event} not found"
-
-        print(f"sending {reply} over the mix network. Cmd {event}")
-        self.ws.send(reply)
+            print(f"no recipient found in message {received_message}")
 
     def newText(self, recipient, message):
 
