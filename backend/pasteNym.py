@@ -32,13 +32,8 @@ class PasteNym:
             if data.get('private') and type(data.get('private')) == bool:
                 private = data.get('private')
 
-<<<<<<< Updated upstream
-            # by default all paste are private
-            burn=False            
-=======
             # by default all paste will not be burn
             burn=False
->>>>>>> Stashed changes
             if data.get('burn') and type(data.get('burn')) == bool:
                 burn = data.get('burn')
 

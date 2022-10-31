@@ -51,13 +51,8 @@ class Serve:
         self.ws.send(self_address_request)
 
     def on_error(self, ws, message):
-<<<<<<< Updated upstream
-        print(traceback.format_exc())
-        print(f"Error: {message}")
-=======
         print(f"Error ws: {message}")
         traceback.print_exc()
->>>>>>> Stashed changes
         exit()
         
 
