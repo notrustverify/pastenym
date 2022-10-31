@@ -28,7 +28,9 @@ class UserInput extends React.Component {
             loading: false,
             open: false,
             urlId: null,
-            buttonSendClick: false
+            buttonSendClick: false,
+            publicKey: null,
+            privateKey: null,
         }
 
         this.sendText = this.sendText.bind(this)
@@ -72,7 +74,7 @@ class UserInput extends React.Component {
 
     displayReceived(message) {
         const content = message.message
-        const replySurb = message.replySurb
+        //const replySurb = message.replySurb
 
         if (content.length > 0) {
             if (content.toLowerCase().includes('error')) {
@@ -92,7 +94,6 @@ class UserInput extends React.Component {
         } else {
             console.log(content)
         }
-        
     }
 
     async sendMessageTo(content) {
@@ -108,13 +109,13 @@ class UserInput extends React.Component {
     }
 
     sendText() {
-        if (this.state.text.length <= 100000 && this.state.text.length > 0){
+        if (this.state.text.length <= 100000 && this.state.text.length > 0) {
 
             this.setState({
                 buttonSendClick: true
             })
             
-            //as soon SURB will be implemented in wasm client, we will use it
+            // As soon SURB will be implemented in wasm client, we will use it
            const data = {
                 event: 'newText',
                 sender: this.state.self_address,
@@ -126,11 +127,9 @@ class UserInput extends React.Component {
             this.sendMessageTo(JSON.stringify(data))
 
         } else {
-
             this.setState({
                 open: true,
             })
-
         }
     }
 
@@ -217,14 +216,8 @@ class UserInput extends React.Component {
                             </Typography>
                         </div>
                         {this.state.urlId ? <SuccessUrlId urlId={this.state.urlId} /> : ''}
-                        {this.state.open ? <ErrorModal textError={this.state.textError}/> : ''}
-                        <Typography fontSize="sm" sx={{
-                                    overflow: 'hidden',
-                                    whiteSpace: 'nowrap',
-                                    textOverflow: 'ellipsis',
-                                }} >
-                                <b>New share</b>
-                            </Typography>
+                        {this.state.open ? <ErrorModal /> : ''}
+                      
                         <Textarea
                             sx={{}}
                             label="New paste"

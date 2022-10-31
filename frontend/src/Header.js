@@ -35,9 +35,6 @@ function ModeToggle() {
 
 class Header extends React.Component {
 
-
-
-
   render() {
     return (
       <CssVarsProvider>

@@ -15,12 +15,15 @@ import ContentCopy from '@mui/icons-material/ContentCopy'
 import Tooltip from '@mui/joy/Tooltip'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
 
+const SERVER_NAME = process.env.SERVER_NAME || "http://localhost:8080"
+
 class SuccessUrlId extends React.Component {
     constructor(props) {
         super(props)
 
         this.state = {
-            urlId: null,
+            url: SERVER_NAME + '/' + this.props.urlId,
+            urlId: this.props.urlId,
             open: false,
             textButton: 'Copy to clipboard',
         }
@@ -34,7 +37,7 @@ class SuccessUrlId extends React.Component {
                 open: true,
                 textButton: 'Copied',
             })
-            const textToCopy = 'http://paste.notrustverify.ch/' + this.props.urlId
+            const textToCopy = this.state.url
             //from  https://stackoverflow.com/a/65996386
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(
@@ -62,6 +65,7 @@ class SuccessUrlId extends React.Component {
         }
     }
 
+    // {SERVER_NAME + '/' + this.props.urlId}
     render() {
         return (
             <Alert
@@ -84,7 +88,7 @@ class SuccessUrlId extends React.Component {
                     </Typography>
                     <Typography fontSize="sm" sx={{ opacity: 0.8 }}>
                         Your text is accessible at{' '}
-                        {'http://paste.notrustverify.ch/' + this.props.urlId}
+                        {this.state.url}
                         {'   '}
                         <ClickAwayListener
                             onClickAway={() => {
