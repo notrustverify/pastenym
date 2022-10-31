@@ -23,7 +23,7 @@ class Serve:
             "type": "send",
             "message": reply_message,
             "recipient": recipient,
-            "withReplySurb": False
+            "withReplySurb": True
             # "replySurb": reply_surb
         })
 
