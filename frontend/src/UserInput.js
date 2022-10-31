@@ -170,7 +170,7 @@ class UserInput extends React.Component {
                                     textOverflow: 'ellipsis',
                                 }}
                             >
-                                <b>Pastenym - anon text sharing service</b>
+                                <b>Anon text sharing service</b>
                             </Typography>
 
                             <Typography
@@ -239,7 +239,7 @@ class UserInput extends React.Component {
                                 textOverflow: 'ellipsis',
                             }}
                         >
-                            <b>New share</b>
+                            <b>New paste</b>
                         </Typography>
 
                         <Box

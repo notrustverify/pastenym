@@ -424,8 +424,5 @@ nym-client/nym-data/clients/*
 *.env
 nym-client/nym-client
 pastenym
-<<<<<<< Updated upstream
 *.drawio.*
-=======
-*.$design.drawio.*
->>>>>>> Stashed changes
+*.drawio.bkp

@@ -225,7 +225,7 @@ class Texts extends React.Component {
                                     textOverflow: 'ellipsis',
                                 }}
                             >
-                                <b>Pastenym - anon text sharing service</b>
+                                <b>Anon text sharing service</b>
                             </Typography>
                             <Typography
                                 fontSize="sm"
