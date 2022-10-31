@@ -21,16 +21,23 @@ class PasteNym:
                 urlId = utils.generateRandomString(self.idLength)
 
             # text is a mandatory field
+
             if data.get('text') and type(data.get('text')) == str:
                 text = data.get('text')
             else:
                 return None
 
             # by default all paste are private
+            private=True
             if data.get('private') and type(data.get('private')) == bool:
                 private = data.get('private')
 
-            return self.db.insertText(html.escape(text), urlId, private=True)
+            # by default all paste are private
+            burn=False            
+            if data.get('burn') and type(data.get('burn')) == bool:
+                burn = data.get('burn')
+
+            return self.db.insertText(html.escape(text), urlId, private=private,burn=burn)
         except KeyError as e:
             print(f"Key not found in newText data as {e}")
             return None
@@ -48,6 +55,6 @@ class PasteNym:
                 return None
 
             return self.db.getTextByUrlId(urlId)
-        except KeyError() as e :
+        except KeyError as e :
             print(f"Key not found in getTextId data as {e}")
             return None

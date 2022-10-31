@@ -13,6 +13,8 @@ import CircularProgress from '@mui/joy/CircularProgress'
 import { withRouter } from './components/withRouter'
 import ErrorModal from './components/ErrorModal'
 import SuccessUrlId from './components/SuccessUrlId'
+import Checkbox from '@mui/joy/Checkbox'
+import Tooltip from '@mui/joy/Tooltip'
 
 let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER
 
@@ -31,6 +33,7 @@ class UserInput extends React.Component {
             buttonSendClick: false,
             publicKey: null,
             privateKey: null,
+            burnChecked: false,
         }
 
         this.sendText = this.sendText.bind(this)
@@ -80,16 +83,15 @@ class UserInput extends React.Component {
             if (content.toLowerCase().includes('error')) {
                 this.setState({
                     open: true,
-                    textError: content
+                    textError: content,
                 })
             } else {
                 //use a wrapper, withRouter to use navigate hooks
                 //this.props.navigate('/' + content)
                 this.setState({
                     urlId: content,
-                    buttonSendClick: false
+                    buttonSendClick: false,
                 })
-                
             }
         } else {
             console.log(content)
@@ -97,7 +99,6 @@ class UserInput extends React.Component {
     }
 
     async sendMessageTo(content) {
-
         const client = await this.state.client.send_message(
             content,
             pasteNymClientId
@@ -110,22 +111,21 @@ class UserInput extends React.Component {
 
     sendText() {
         if (this.state.text.length <= 100000 && this.state.text.length > 0) {
-
             this.setState({
-                buttonSendClick: true
+                buttonSendClick: true,
             })
-            
+
             // As soon SURB will be implemented in wasm client, we will use it
-           const data = {
+            const data = {
                 event: 'newText',
                 sender: this.state.self_address,
                 data: {
-                    text:this.state.text,
-                    private: true
-                }
+                    text: this.state.text,
+                    private: true,
+                    burn: this.state.burnChecked,
+                },
             }
             this.sendMessageTo(JSON.stringify(data))
-
         } else {
             this.setState({
                 open: true,
@@ -158,11 +158,15 @@ class UserInput extends React.Component {
                         variant="outlined"
                     >
                         <div>
-                            <Typography level="h4" component="h1" sx={{
+                            <Typography
+                                level="h4"
+                                component="h1"
+                                sx={{
                                     overflow: 'hidden',
                                     whiteSpace: 'nowrap',
                                     textOverflow: 'ellipsis',
-                                }}>
+                                }}
+                            >
                                 <b>Pastenym - anon text sharing service</b>
                             </Typography>
 
@@ -215,9 +219,49 @@ class UserInput extends React.Component {
                                 )}
                             </Typography>
                         </div>
-                        {this.state.urlId ? <SuccessUrlId urlId={this.state.urlId} /> : ''}
+                        {this.state.urlId ? (
+                            <SuccessUrlId urlId={this.state.urlId} />
+                        ) : (
+                            ''
+                        )}
                         {this.state.open ? <ErrorModal /> : ''}
-                      
+
+                        <Typography
+                            fontSize="sm"
+                            sx={{
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                                textOverflow: 'ellipsis',
+                            }}
+                        >
+                            <b>New share</b>
+                        </Typography>
+
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                gap: 4,
+                                width: '100%',
+                                justifyContent: 'left',
+                            }}
+                        >
+                            <Tooltip
+                                title="message will be deleted when read"
+                                size="sm"
+                                placement="bottom"
+                            >
+                                <Checkbox
+                                    onChange={(event) =>
+                                        this.setState({
+                                            burnChecked: event.target.checked,
+                                        })
+                                    }
+                                    size="sm"
+                                    label="Burn after reading"
+                                />
+                            </Tooltip>
+                        </Box>
+
                         <Textarea
                             sx={{}}
                             label="New paste"
@@ -227,7 +271,6 @@ class UserInput extends React.Component {
                             required
                             autoFocus
                             value={this.state.text}
-                            
                             onChange={(event) =>
                                 this.setState({ text: event.target.value })
                             }

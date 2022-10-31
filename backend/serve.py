@@ -5,6 +5,7 @@ from pasteNym import PasteNym
 import utils
 import rel
 from datetime import datetime
+import traceback
 
 self_address_request = json.dumps({
     "type": "selfAddress"
@@ -50,6 +51,7 @@ class Serve:
         self.ws.send(self_address_request)
 
     def on_error(self, ws, message):
+        print(traceback.format_exc())
         print(f"Error: {message}")
         exit()
         

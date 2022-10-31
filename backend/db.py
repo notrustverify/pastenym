@@ -39,14 +39,15 @@ class BaseModel(Model):
         finally:
             self.close()
 
-    def insertText(self, text, url_id,private=True):
+    def insertText(self, text, url_id,private=True,burn=False):
         self.connect()
 
         try:
             with database.atomic():
-                idInsert = Text.insert(text=text, url_id=url_id,is_private=private).execute()
+                idInsert = Text.insert(text=text, url_id=url_id,is_private=private,is_burn=burn).execute()
 
                 return list(Text.select().where(Text.id == idInsert).dicts())
+
         except IntegrityError as e:
             logHandler.exception(e)
             return False
@@ -64,9 +65,19 @@ class BaseModel(Model):
 
                 Text.update(num_view=Text.num_view+1).where(Text.url_id == url_id).execute()
 
-                data = Text.select(Text.text,Text.num_view,Text.created_on).where(Text.url_id == url_id).dicts()
+                data = Text.select(Text.id,Text.text,Text.num_view,Text.created_on,Text.is_burn).where(Text.url_id == url_id).dicts()
 
                 if len(data) > 0:
+
+                    try:
+                        if data[0].get('is_burn'):
+                            Text.delete().where(Text.id == data[0].get('id')).execute()
+                            print(f"{data[0]} is deleted")
+                    except KeyError as e:
+                        print(f"error with key, {e}")
+
+                    # id is not useful info here
+                    del data[0]['id']
                     return data[0]
                 return None
 
@@ -362,6 +373,7 @@ class Text(BaseModel):
     password_protected = TextField(null=True)
     num_view = IntegerField(default=0)
     is_private = BooleanField(null=True)
+    is_burn = BooleanField(null=True)
 
     created_on = DateTimeField(default=datetime.utcnow)
     updated_on = DateTimeField(default=datetime.utcnow)

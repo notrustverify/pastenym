@@ -424,4 +424,4 @@ nym-client/nym-data/clients/*
 *.env
 nym-client/nym-client
 pastenym
-
+*.drawio.*
