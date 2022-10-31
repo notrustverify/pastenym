@@ -51,9 +51,15 @@ class Serve:
         self.ws.send(self_address_request)
 
     def on_error(self, ws, message):
-        print(f"Error ws: {message}")
-        traceback.print_exc()
+        try:
+            print(f"Error ws: {message}")
+            traceback.print_exc()
+        except UnicodeDecodeError as e:
+            print("Unicode error, nothing to do about, {e}")
+            return
+        
         exit()
+       
         
 
     def on_close(self, ws):

@@ -70,7 +70,7 @@ class BaseModel(Model):
                 if len(data) > 0:
                     try:
                         if data[0].get('is_burn'):
-                            print(f"text urlid {url_id} is deleted")
+                            print(f"text id {data[0]['id']} is deleted")
                             Text.delete().where(Text.id == data[0]['id']).execute()
                     except (KeyError,IndexError) as e:
                         print(f"error with key {e}")
