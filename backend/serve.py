@@ -33,14 +33,17 @@ class Serve:
         self.pasteNym = PasteNym()
 
         websocket.enableTrace(False)
-        self.ws = websocket.WebSocketApp(url,
-                                         on_message=lambda ws, msg: self.on_message(
-                                             ws, msg),
-                                         on_error=lambda ws, msg: self.on_error(
-                                             ws, msg),
-                                         on_close=lambda ws:     self.on_close(
-                                             ws),
-                                         on_open=lambda ws:     self.on_open(ws))
+        try:
+            self.ws = websocket.WebSocketApp(url,
+                                            on_message=lambda ws, msg: self.on_message(
+                                                ws, msg),
+                                            on_error=lambda ws, msg: self.on_error(
+                                                ws, msg),
+                                            on_close=lambda ws:     self.on_close(
+                                                ws),
+                                            on_open=lambda ws:     self.on_open(ws))
+        except UnicodeDecodeError as e:
+            print("Unicode error, nothing to do about, {e}")
 
         # Set dispatcher to automatic reconnection
         self.ws.run_forever(dispatcher=rel)

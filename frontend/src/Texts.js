@@ -330,7 +330,7 @@ class Texts extends React.Component {
                             sx={{
                                 display: 'flex',
                                 whiteSpace: 'pre-wrap',
-                                border: '2px solid  rgb(211,211,211)',
+                                border: '1px solid  rgb(211,211,211)',
                                 borderRadius: "5px",
                                 p: 1,
                             }}
