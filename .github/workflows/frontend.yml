@@ -40,6 +40,7 @@ jobs:
         working-directory: ./frontend
         env:
           REACT_APP_NYM_CLIENT_SERVER: ${{ secrets.REACT_APP_NYM_CLIENT_SERVER }}
+          SERVER_NAME: ${{ secrets.SERVER_NAME }}
         run: |
           cat <<EOF > .env
           REACT_APP_NYM_CLIENT_SERVER="$REACT_APP_NYM_CLIENT_SERVER"
