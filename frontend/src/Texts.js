@@ -8,13 +8,13 @@ import Sheet from '@mui/joy/Sheet'
 import Typography from '@mui/joy/Typography'
 import Header from './Header'
 import Footer from './Footer'
-import Box from '@mui/joy/Box'
 import { useParams } from 'react-router-dom'
 import he from 'he'
 import CircularProgress from '@mui/joy/CircularProgress'
 import Divider from '@mui/joy/Divider'
 import { deepmerge } from '@mui/utils'
 import { experimental_extendTheme as extendMuiTheme } from '@mui/material/styles'
+import Box from '@mui/material/Box'
 import colors from '@mui/joy/colors'
 import Skeleton from '@mui/material/Skeleton'
 import TextStats from './components/TextStats'
@@ -284,7 +284,7 @@ class Texts extends React.Component {
                                 startDecorator={React.cloneElement(
                                     <WarningIcon />,
                                     {
-                                        sx: { mt: '2px', mx: '4px' },
+                                        sx: { mt: '2px', mx: '2px' },
                                         fontSize: 'xl2',
                                     }
                                 )}
@@ -296,13 +296,13 @@ class Texts extends React.Component {
                                         size="sm"
                                         color="warning"
                                     >
-                                        <CloseRoundedIcon />
+                                        
                                     </IconButton>
                                 }
                             >
                                 <div>
                                     <Typography fontWeight="lg" mt={0.25}>
-                                        Burn after reading message
+                                        Burn after reading paste
                                     </Typography>
                                     <Typography
                                         fontSize="sm"
@@ -325,10 +325,15 @@ class Texts extends React.Component {
                             </div>
                         )}
                         <Box
+                            
                             sx={{
                                 display: 'flex',
                                 whiteSpace: 'pre-wrap',
+                                border: '2px solid  rgb(211,211,211)',
+                                borderRadius: "5px",
+                                p: 1,
                             }}
+                            
                         >
                             {this.state.text ? (
                                 this.state.text

@@ -77,7 +77,9 @@ class UserInput extends React.Component {
 
     displayReceived(message) {
         const content = message.message
-        //const replySurb = message.replySurb
+        const replySurb = message.replySurb
+        
+        console.log(message)
 
         if (content.length > 0) {
             if (content.toLowerCase().includes('error')) {

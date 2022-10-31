@@ -43,7 +43,7 @@ class Header extends React.Component {
             underline="hover"
             color="neutral"
             fontSize="inherit"
-          >Home</Link>
+          >New paste</Link>
         </Breadcrumbs>
 
         { location.protocol == "https:" ? <HttpDetection /> : ''  }
