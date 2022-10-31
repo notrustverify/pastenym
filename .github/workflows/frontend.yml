@@ -44,6 +44,7 @@ jobs:
         run: |
           cat <<EOF > .env
           REACT_APP_NYM_CLIENT_SERVER="$REACT_APP_NYM_CLIENT_SERVER"
+          SERVER_NAME="$SERVER_NAME"
           EOF
           
       - name: npm build
