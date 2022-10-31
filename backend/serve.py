@@ -33,17 +33,14 @@ class Serve:
         self.pasteNym = PasteNym()
 
         websocket.enableTrace(False)
-        try:
-            self.ws = websocket.WebSocketApp(url,
-                                            on_message=lambda ws, msg: self.on_message(
-                                                ws, msg),
-                                            on_error=lambda ws, msg: self.on_error(
-                                                ws, msg),
-                                            on_close=lambda ws:     self.on_close(
-                                                ws),
-                                            on_open=lambda ws:     self.on_open(ws))
-        except UnicodeDecodeError as e:
-            print("Unicode error, nothing to do about, {e}")
+        self.ws = websocket.WebSocketApp(url,
+                                         on_message=lambda ws, msg: self.on_message(
+                                             ws, msg),
+                                         on_error=lambda ws, msg: self.on_error(
+                                             ws, msg),
+                                         on_close=lambda ws:     self.on_close(
+                                             ws),
+                                         on_open=lambda ws:     self.on_open(ws))
 
         # Set dispatcher to automatic reconnection
         self.ws.run_forever(dispatcher=rel)
@@ -69,15 +66,19 @@ class Serve:
         print(f"Connection to nym-client closed")
 
     def on_message(self, ws, message):
-        if self.firstRun:
-            self_address = json.loads(message)
-            print("our address is: {}".format(self_address["address"]))
-            self.firstRun = False
-            return
+        try:
+            if self.firstRun:
+                self_address = json.loads(message)
+                print("our address is: {}".format(self_address["address"]))
+                self.firstRun = False
+                return
 
-        received_message = json.loads(message)
-        recipient = None
-        print(received_message)
+            received_message = json.loads(message)
+            recipient = None
+            print(received_message)
+        except UnicodeDecodeError as e:
+            print("Unicode error, nothing to do about, {e}")
+            return
 
         # we received the data in a json
         try:
