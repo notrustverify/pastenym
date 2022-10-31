@@ -324,6 +324,7 @@ class Texts extends React.Component {
                                 )}
                             </div>
                         )}
+                        <b>Paste</b>
                         <Box
                             
                             sx={{
