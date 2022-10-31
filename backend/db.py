@@ -68,6 +68,7 @@ class BaseModel(Model):
                 data = Text.select(Text.id,Text.text,Text.num_view,Text.created_on,Text.is_burn).where(Text.url_id == url_id).dicts()
 
                 if len(data) > 0:
+<<<<<<< Updated upstream
 
                     try:
                         if data[0].get('is_burn'):
@@ -77,8 +78,19 @@ class BaseModel(Model):
                         print(f"error with key, {e}")
 
                     # id is not useful info here
+=======
+                    try:
+                        if data[0].get('is_burn'):
+                            print(f"text urlid {url_id} is deleted")
+                            Text.delete().where(Text.id == data[0]['id']).execute()
+                    except (KeyError,IndexError) as e:
+                        print(f"error with key {e}")
+
+                    # remove text id since it's not a useful informations
+>>>>>>> Stashed changes
                     del data[0]['id']
                     return data[0]
+
                 return None
 
         except IntegrityError as e:
@@ -373,7 +385,11 @@ class Text(BaseModel):
     password_protected = TextField(null=True)
     num_view = IntegerField(default=0)
     is_private = BooleanField(null=True)
+<<<<<<< Updated upstream
     is_burn = BooleanField(null=True)
+=======
+    is_burn = BooleanField(null=True) # burn after reading paste
+>>>>>>> Stashed changes
 
     created_on = DateTimeField(default=datetime.utcnow)
     updated_on = DateTimeField(default=datetime.utcnow)

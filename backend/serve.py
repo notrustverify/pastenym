@@ -51,8 +51,13 @@ class Serve:
         self.ws.send(self_address_request)
 
     def on_error(self, ws, message):
+<<<<<<< Updated upstream
         print(traceback.format_exc())
         print(f"Error: {message}")
+=======
+        print(f"Error ws: {message}")
+        traceback.print_exc()
+>>>>>>> Stashed changes
         exit()
         
 
@@ -77,12 +82,16 @@ class Serve:
             event = received_data['event']
             data = received_data['data']
 
-        except (IndexError, KeyError, json.decoder.JSONDecodeError) as e:
-            err_msg = "error parsing message, {e}"
-            print(err_msg)
-            reply_message = err_msg
-            Serve.createPayload(recipient, reply_message)
-            return
+        except (IndexError,KeyError,json.JSONDecodeError) as e:
+            if recipient is not None:
+                err_msg = f"error parsing message, {e}"
+                print(err_msg)
+                reply_message = err_msg
+                Serve.createPayload(recipient, reply_message)
+            else:
+                print(f"no recipient found in message {received_message}")
+
+            
 
         reply = ""
     
