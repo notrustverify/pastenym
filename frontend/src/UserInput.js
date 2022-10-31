@@ -220,7 +220,9 @@ class UserInput extends React.Component {
                                 )}
                             </Typography>
                         </div>
-                        {this.state.urlId ? (
+                        
+                        { // use buttonClick to reload the message
+                        this.state.urlId && !this.state.buttonSendClick ? (
                             <SuccessUrlId urlId={this.state.urlId} />
                         ) : (
                             ''

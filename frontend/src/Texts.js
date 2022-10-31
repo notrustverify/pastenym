@@ -17,9 +17,11 @@ import { deepmerge } from '@mui/utils'
 import { experimental_extendTheme as extendMuiTheme } from '@mui/material/styles'
 import colors from '@mui/joy/colors'
 import Skeleton from '@mui/material/Skeleton'
-import InfoOutlined from '@mui/icons-material/InfoOutlined'
-import VisibilityIcon from '@mui/icons-material/Visibility'
 import TextStats from './components/TextStats'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import WarningIcon from '@mui/icons-material/Warning'
+import Alert from '@mui/joy/Alert'
+import IconButton from '@mui/joy/IconButton'
 
 const muiTheme = extendMuiTheme({
     // This is required to point to `var(--joy-*)` because we are using `CssVarsProvider` from Joy UI.
@@ -121,6 +123,7 @@ class Texts extends React.Component {
                 text: he.decode(data['text']),
                 num_view: data['num_view'],
                 created_on: data['created_on'],
+                is_burn: data['is_burn']
             })
         } else {
             this.setState({
@@ -165,8 +168,8 @@ class Texts extends React.Component {
                 event: 'getText',
                 sender: client.self_address(),
                 data: {
-                    urlId: this.state.urlId
-                }
+                    urlId: this.state.urlId,
+                },
             }
             await this.sendMessageTo(client, JSON.stringify(data))
         }
@@ -179,7 +182,6 @@ class Texts extends React.Component {
     }
 
     componentWillUnmount() {}
-
 
     // have to pass the client in parameter because setState update the client state after
     async sendMessageTo(client, message) {
@@ -276,16 +278,52 @@ class Texts extends React.Component {
                         </div>
 
                         <Divider />
-                        <div>
-                            {this.state.num_view ? (
-                                <TextStats
-                                    num_view={this.state.num_view}
-                                    created_on={this.state.created_on}
-                                />
-                            ) : (
-                                ''
-                            )}
-                        </div>
+                        {this.state.is_burn ? (
+                            <Alert
+                                sx={{ alignItems: 'flex-start' }}
+                                startDecorator={React.cloneElement(
+                                    <WarningIcon />,
+                                    {
+                                        sx: { mt: '2px', mx: '4px' },
+                                        fontSize: 'xl2',
+                                    }
+                                )}
+                                variant="soft"
+                                color="warning"
+                                endDecorator={
+                                    <IconButton
+                                        variant="soft"
+                                        size="sm"
+                                        color="warning"
+                                    >
+                                        <CloseRoundedIcon />
+                                    </IconButton>
+                                }
+                            >
+                                <div>
+                                    <Typography fontWeight="lg" mt={0.25}>
+                                        Burn after reading message
+                                    </Typography>
+                                    <Typography
+                                        fontSize="sm"
+                                        sx={{ opacity: 0.8 }}
+                                    >
+                                        The paste is now deleted
+                                    </Typography>
+                                </div>
+                            </Alert>
+                        ) : (
+                            <div>
+                                {this.state.num_view ? (
+                                    <TextStats
+                                        num_view={this.state.num_view}
+                                        created_on={this.state.created_on}
+                                    />
+                                ) : (
+                                    ''
+                                )}
+                            </div>
+                        )}
                         <Box
                             sx={{
                                 display: 'flex',
