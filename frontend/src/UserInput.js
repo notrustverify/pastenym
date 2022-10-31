@@ -129,6 +129,7 @@ class UserInput extends React.Component {
         } else {
             this.setState({
                 open: true,
+                textError: "Too many char, limit is 100'000"
             })
         }
     }
@@ -224,7 +225,7 @@ class UserInput extends React.Component {
                         ) : (
                             ''
                         )}
-                        {this.state.open ? <ErrorModal /> : ''}
+                        {this.state.open ? <ErrorModal textError={this.state.textError} /> : ''}
 
                         <Typography
                             fontSize="sm"
