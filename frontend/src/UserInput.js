@@ -78,7 +78,7 @@ class UserInput extends React.Component {
     displayReceived(message) {
         const content = message.message
         const replySurb = message.replySurb
-        
+
         console.log(message)
 
         if (content.length > 0) {
@@ -98,6 +98,10 @@ class UserInput extends React.Component {
         } else {
             console.log(content)
         }
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth',
+        })
     }
 
     async sendMessageTo(content) {
@@ -131,7 +135,7 @@ class UserInput extends React.Component {
         } else {
             this.setState({
                 open: true,
-                textError: "Too many char, limit is 100'000"
+                textError: "Too many char, limit is 100'000",
             })
         }
     }
@@ -222,14 +226,20 @@ class UserInput extends React.Component {
                                 )}
                             </Typography>
                         </div>
-                        
-                        { // use buttonClick to reload the message
-                        this.state.urlId && !this.state.buttonSendClick ? (
-                            <SuccessUrlId urlId={this.state.urlId} />
+
+                        {
+                            // use buttonClick to reload the message
+                            this.state.urlId && !this.state.buttonSendClick ? (
+                                <SuccessUrlId urlId={this.state.urlId} />
+                            ) : (
+                                ''
+                            )
+                        }
+                        {this.state.open ? (
+                            <ErrorModal textError={this.state.textError} />
                         ) : (
                             ''
                         )}
-                        {this.state.open ? <ErrorModal textError={this.state.textError} /> : ''}
 
                         <Typography
                             fontSize="sm"

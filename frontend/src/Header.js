@@ -102,7 +102,14 @@ class Header extends React.Component {
                         noWrap
                         sx={{ flex: 1 }}
                     >
-                        <Link underline="none" color="inherit" href="/" variant="outlined">Pastenym</Link>
+                        <Link
+                            underline="none"
+                            color="inherit"
+                            href="/"
+                            variant="outlined"
+                        >
+                            Pastenym
+                        </Link>
                     </Typography>
                     <Button variant="outlined" size="small" disabled>
                         Connect with Nym

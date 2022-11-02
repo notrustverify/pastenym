@@ -78,7 +78,7 @@ class SuccessUrlId extends React.Component {
                 color="success"
                 endDecorator={
                     <IconButton variant="soft" size="sm" color="success">
-                        <CloseRoundedIcon />
+                       
                     </IconButton>
                 }
             >
