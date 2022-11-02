@@ -13,6 +13,7 @@ export default function App() {
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<UserInput />} />
+                <Route path="/protec" element={<UserInput />} />
                 <Route path=":urlId" element={<Texts />} />
                 <Route path="*" element={<Texts />} />
             </Routes>
