@@ -38,12 +38,11 @@ class Disclaimer extends React.Component {
         >
           <div>
             <Typography fontWeight="lg" mt={0.25}>
-              Under heavy development 
+              Disclaimer
             </Typography>
             <Typography fontSize="sm" sx={{ opacity: 0.8 }}>
-            the project is still in alpha and cannot be used to share sensitive information.
-            
-            <b>The authors of this project take no responsibility for the information transmitted on this service.        </b>      
+            Pastenym is in alpha stage and shouldn't be used to share sensitive information.
+            <b>The authors decline any responsibility for the information transmitted using this service.</b>
             </Typography>
           </div>
         </Alert>
