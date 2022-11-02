@@ -12,6 +12,7 @@ import Button from '@mui/material/Button'
 import { deepmerge } from '@mui/utils'
 import { experimental_extendTheme as extendMuiTheme } from '@mui/material/styles'
 import colors from '@mui/joy/colors'
+import Disclaimer from './components/Disclaimer'
 import {
     extendTheme as extendJoyTheme,
     CssVarsProvider,
@@ -121,6 +122,8 @@ class Header extends React.Component {
                     sx={{ justifyContent: 'space-between', overflowX: 'auto' }}
                 ></Toolbar>
                 {location.protocol == 'https:' ? <HttpDetection /> : ''}
+
+                <Disclaimer/>
             </CssVarsProvider>
         )
     }
