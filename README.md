@@ -78,6 +78,6 @@ cp -r ~/.nym/clients/docker-client nym-data/clients
 ## Structure
 
 * `backend/` manage the websockets connections and DB
-* `js-example/` temporary frontend, just for the demo, will be replaced
+* `frontend/` web application
 * `nym-client/` store the configuration,keys for the nym-client
 * `resources/` store img or files for documentation
