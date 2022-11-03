@@ -33,6 +33,14 @@ module.exports = {
         },
       ],
     }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, './src/worker/*.js'),
+          to: '[name][ext]',
+        },
+      ],
+    }),
     new FaviconsWebpackPlugin('./public/logo.png'),
     new CleanWebpackPlugin(),
     new webpack.HotModuleReplacementPlugin(),
@@ -85,6 +93,7 @@ module.exports = {
   },
   experiments: {
     syncWebAssembly: true,
+    topLevelAwait: true
   },
   performance: {
     maxEntrypointSize: 1012000,

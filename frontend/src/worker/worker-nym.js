@@ -11,19 +11,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-if( 'undefined' === typeof window){
-  importScripts('nym_client_wasm.js');
-}
+
+console.log('Initializing worker')
+
 // wasm_bindgen creates a global variable (with the exports attached) that is in scope after `importScripts`
-    const { default_debug, get_gateway, NymClient, set_panic_hook, Config } = wasm_bindgen;
 
+import { default_debug, get_gateway, NymClient, set_panic_hook, Config } from '@nymproject/nym-client-wasm'
 
-
-console.log('Initializing worker');
-
-
-
+// proper initialization
 class ClientWrapper {
+
   constructor(config, onMessageHandler) {
     this.rustClient = new NymClient(config);
     this.rustClient.set_on_message(onMessageHandler);
@@ -56,7 +53,9 @@ class ClientWrapper {
 
 let client = null;
 
-async function main() {
+export const Nym = async () => {
+  console.log('Initializing worker')
+
   // load WASM package
   await wasm_bindgen('nym_client_wasm_bg.wasm');
 
@@ -66,7 +65,7 @@ async function main() {
   set_panic_hook();
 
   console.error("the current mainnet is not compatible with v2! - either use the pre-merge branch or explicitly set the client to use one of V2 QA networks")
-  return
+  //return
 
   // validator server we will use to get topology from
   // MAINNET (V1):
@@ -77,6 +76,7 @@ async function main() {
   // const preferredGateway = 'CgQrYP8etksSBf4nALNqp93SHPpgFwEUyTsjBNNLj5WM';
 
   const gatewayEndpoint = await get_gateway(validator, preferredGateway);
+  gatewayEndpoint.gateway_listener = "wss://gateway1.nymtech.net:443"; // this is needed if we want it to work on the web. However this gateway is a v1 gateway, we will need to change for v2 once we get there
 
   // only really useful if you want to adjust some settings like traffic rate
   // (if not needed you can just pass a null)
@@ -131,5 +131,3 @@ async function main() {
   };
 }
 
-// Let's get started!
-//main();

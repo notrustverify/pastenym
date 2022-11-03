@@ -15,6 +15,8 @@ import ErrorModal from './components/ErrorModal'
 import SuccessUrlId from './components/SuccessUrlId'
 import Checkbox from '@mui/joy/Checkbox'
 import Tooltip from '@mui/joy/Tooltip'
+import WorkerBuilder from './worker/worker-builder'
+import {Nym} from './worker/worker-nym'
 
 let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER
 
@@ -40,12 +42,18 @@ class UserInput extends React.Component {
     }
 
     componentDidMount() {
+
+        this.instance = new WorkerBuilder(Nym)
+    
+        
         const loadWasm = async () => {
             let client = null
             const wasm = await import('@nymproject/nym-client-wasm')
             wasm.set_panic_hook()
             const validator = 'https://validator.nymtech.net/api'
             client = new wasm.NymClient(validator)
+            const gatewayEndpoint = await get_gateway(validator, preferredGateway);
+            gatewayEndpoint.gateway_listener = "wss://gateway1.nymtech.net:443";
 
             const on_message = (msg) => this.displayReceived(msg)
             const on_connect = () =>
