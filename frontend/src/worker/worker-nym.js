@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-console.log('Initializing worker')
 
 // wasm_bindgen creates a global variable (with the exports attached) that is in scope after `importScripts`
 
-import { default_debug, get_gateway, NymClient, set_panic_hook, Config } from '@nymproject/nym-client-wasm'
+importScripts('nym_client_wasm.js');
+const { default_debug, get_gateway, NymClient, set_panic_hook, Config } = wasm_bindgen;
 
 // proper initialization
 class ClientWrapper {
@@ -53,7 +53,7 @@ class ClientWrapper {
 
 let client = null;
 
-export const Nym = async () => {
+const nym = async () => {
   console.log('Initializing worker')
 
   // load WASM package
@@ -92,7 +92,7 @@ export const Nym = async () => {
 
   debug.topology_refresh_rate_ms = BigInt(60000)
 
-  const config = new Config('my-awesome-wasm-client', validator, gatewayEndpoint, debug);
+  const config = new Config('wasm-client', validator, gatewayEndpoint, debug);
 
   const onMessageHandler = (message) => {
     self.postMessage({
@@ -131,3 +131,4 @@ export const Nym = async () => {
   };
 }
 
+nym()

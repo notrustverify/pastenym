@@ -15,10 +15,56 @@ import ErrorModal from './components/ErrorModal'
 import SuccessUrlId from './components/SuccessUrlId'
 import Checkbox from '@mui/joy/Checkbox'
 import Tooltip from '@mui/joy/Tooltip'
-import WorkerBuilder from './worker/worker-builder'
-import {Nym} from './worker/worker-nym'
 
 let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER
+
+class WebWorkerClient {
+    worker = null
+    
+    constructor() {
+        this.self_address = "dfasdasdas"
+        this.worker = new Worker(
+            new URL('./worker/worker-nym.js', import.meta.url)
+        )
+
+        this.worker.onmessage = (ev) => {
+            if (ev.data && ev.data.kind) {
+                switch (ev.data.kind) {
+                    case 'Ready':
+                        const { selfAddress } = ev.data.args
+                        this.self_address = selfAddress
+                        break
+                    case 'ReceiveMessage':
+                        const { message } = ev.data.args
+                        displayReceived(message)
+                        break
+                }
+            }
+        }
+          
+    }
+
+    getSelfAddress = () => {
+        return this.self_address
+    }
+
+    sendMessage = (message, recipient) => {
+        if (!this.worker) {
+            console.error(
+                'Could not send message because worker does not exist'
+            )
+            return
+        }
+
+        this.worker.postMessage({
+            kind: 'SendMessage',
+            args: {
+                message,
+                recipient,
+            },
+        })
+    }
+}
 
 class UserInput extends React.Component {
     constructor(props) {
@@ -26,7 +72,7 @@ class UserInput extends React.Component {
 
         this.state = {
             client: null,
-            self_address: '',
+            self_address: 'dd',
             text: '',
             textError: null,
             loading: false,
@@ -42,40 +88,19 @@ class UserInput extends React.Component {
     }
 
     componentDidMount() {
+        let client = null
+        client = new WebWorkerClient()
+        client.onmessage = (event) => {
+            console.log(`Received message from worker: ${event.data}`)}
+        console.log("djfksdhfsdjfds")
+        console.log(client.self_address)
+        client.sendMessage('flkdfjd', 'dfpsdjfksd')
 
-        this.instance = new WorkerBuilder(Nym)
-    
-        
-        const loadWasm = async () => {
-            let client = null
-            const wasm = await import('@nymproject/nym-client-wasm')
-            wasm.set_panic_hook()
-            const validator = 'https://validator.nymtech.net/api'
-            client = new wasm.NymClient(validator)
-            const gatewayEndpoint = await get_gateway(validator, preferredGateway);
-            gatewayEndpoint.gateway_listener = "wss://gateway1.nymtech.net:443";
+        this.setState({
+            client: client,
+            self_address: client.self_address,
+        })
 
-            const on_message = (msg) => this.displayReceived(msg)
-            const on_connect = () =>
-                console.log(
-                    'Established (and authenticated) gateway connection!'
-                )
-
-            client.set_on_gateway_connect(on_connect)
-            client.set_on_message(on_message)
-
-            // this is current limitation of wasm in rust - for async methods you can't take self my reference...
-            // I'm trying to figure out if I can somehow hack my way around it, but for time being you have to re-assign
-            // the object (it's the same one)
-            client = await client.initial_setup()
-
-            this.setState({
-                client: client,
-                self_address: client.self_address(),
-            })
-        }
-
-        loadWasm().catch(console.error)
         this.setState({
             loading: true,
         })
