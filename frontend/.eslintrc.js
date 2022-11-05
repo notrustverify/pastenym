@@ -21,3 +21,5 @@ module.exports = {
         "no-undef": off,
     }
 }
+// eslint-disable-next-line import/no-anonymous-default-export
+// eslint-disable-next-line no-restricted-globals

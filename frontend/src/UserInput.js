@@ -16,18 +16,65 @@ import SuccessUrlId from './components/SuccessUrlId'
 import Checkbox from '@mui/joy/Checkbox'
 import Tooltip from '@mui/joy/Tooltip'
 
-let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER
+let recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
+
+class WebWorkerClient {
+    worker = null
+
+    constructor() {
+        //worker function not accessible in the browser
+        if (typeof Worker == 'undefined') {
+            console.error('No Web Worker support')
+            return
+        }
+
+        this.worker = new Worker(
+            new URL('./worker/worker-nym.js', import.meta.url)
+        )
+
+        this.worker.onmessage = (ev) => {
+            if (ev.data && ev.data.kind) {
+                switch (ev.data.kind) {
+                    case 'Ready':
+                        const { selfAddress } = ev.data.args
+                        setSelfAddress(selfAddress)
+                        break
+                    case 'ReceiveMessage':
+                        const { message } = ev.data.args
+                        displayReceived(message)
+                        break
+                }
+            }
+        }
+    }
+
+    sendMessage = (message, recipient) => {
+        if (!this.worker) {
+            console.error(
+                'Could not send message because worker does not exist'
+            )
+            return
+        }
+
+        this.worker.postMessage({
+            kind: 'SendMessage',
+            args: {
+                message,
+                recipient,
+            },
+        })
+    }
+}
 
 class UserInput extends React.Component {
     constructor(props) {
         super(props)
+        this.client = null
 
         this.state = {
-            client: null,
-            self_address: '',
+            self_address: null,
             text: '',
             textError: null,
-            loading: false,
             open: false,
             urlId: null,
             buttonSendClick: false,
@@ -40,46 +87,42 @@ class UserInput extends React.Component {
     }
 
     componentDidMount() {
-        const loadWasm = async () => {
-            let client = null
-            const wasm = await import('@nymproject/nym-client-wasm')
-            wasm.set_panic_hook()
-            const validator = 'https://validator.nymtech.net/api'
-            client = new wasm.NymClient(validator)
-
-            const on_message = (msg) => this.displayReceived(msg)
-            const on_connect = () =>
-                console.log(
-                    'Established (and authenticated) gateway connection!'
-                )
-
-            client.set_on_gateway_connect(on_connect)
-            client.set_on_message(on_message)
-
-            // this is current limitation of wasm in rust - for async methods you can't take self my reference...
-            // I'm trying to figure out if I can somehow hack my way around it, but for time being you have to re-assign
-            // the object (it's the same one)
-            client = await client.initial_setup()
-
-            this.setState({
-                client: client,
-                self_address: client.self_address(),
-            })
+        //worker function not accessible in the browser
+        if (typeof Worker == 'undefined') {
+            console.error('No Web Worker support')
+            return
         }
 
-        loadWasm().catch(console.error)
-        this.setState({
-            loading: true,
-        })
+        this.client = new Worker(
+            new URL('./worker/worker-nym.js', import.meta.url)
+        )
+
+        this.client.onmessage = (ev) => {
+            if (ev.data && ev.data.kind) {
+                switch (ev.data.kind) {
+                    case 'Ready':
+                        const { selfAddress } = ev.data.args
+                        this.setState({
+                            self_address: selfAddress,
+                        })
+                        break
+                    case 'ReceiveMessage':
+                        const { message } = ev.data.args
+                        this.displayReceived(message)
+                        break
+                }
+            }
+        }
+
     }
+
 
     componentWillUnmount() {}
 
-    displayReceived(message) {
-        const content = message.message
-        const replySurb = message.replySurb
 
-        console.log(message)
+    displayReceived(message) {
+        const content = message
+        const replySurb = message.replySurb
 
         if (content.length > 0) {
             if (content.toLowerCase().includes('error')) {
@@ -104,14 +147,20 @@ class UserInput extends React.Component {
         })
     }
 
-    async sendMessageTo(content) {
-        const client = await this.state.client.send_message(
-            content,
-            pasteNymClientId
-        )
+    async sendMessageTo(message) {
+        if (!this.client) {
+            console.error(
+                'Could not send message because worker does not exist'
+            )
+            return
+        }
 
-        this.setState({
-            client: client,
+        this.client.postMessage({
+            kind: 'SendMessage',
+            args: {
+                message,
+                recipient,
+            },
         })
     }
 
@@ -186,7 +235,7 @@ class UserInput extends React.Component {
                                 }}
                             >
                                 <b>Client id</b>{' '}
-                                {this.state.client ? (
+                                {this.state.self_address ? (
                                     this.state.self_address
                                         .split('@')[0]
                                         .slice(0, 60) + '...'
@@ -211,7 +260,7 @@ class UserInput extends React.Component {
                                 }}
                             >
                                 <b>Connected Gateway</b>{' '}
-                                {this.state.client ? (
+                                {this.state.self_address ? (
                                     this.state.self_address.split('@')[1]
                                 ) : (
                                     <CircularProgress
@@ -299,7 +348,7 @@ class UserInput extends React.Component {
                             }
                         />
                         <Button
-                            disabled={this.state.client ? false : true}
+                            disabled={this.state.self_address ? false : true}
                             loading={this.state.buttonSendClick}
                             onClick={this.sendText}
                             endDecorator={<SendIcon />}

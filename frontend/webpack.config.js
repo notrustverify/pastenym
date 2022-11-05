@@ -5,11 +5,12 @@ const webpack = require('webpack')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 const Dotenv = require('dotenv-webpack')
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
+const WorkboxPlugin = require('workbox-webpack-plugin')
 
 module.exports = {
   entry: {
     main: path.resolve(__dirname, './src/index.js'),
-    app: path.resolve(__dirname, './src/UserInput.js')
+    app: path.resolve(__dirname, './src/UserInput.js'),
     //worker: path.resolve(__dirname, './src/worker.js'),
     //bootstrap: path.resolve(__dirname, './src/bootstrap.js')
   },
@@ -33,10 +34,29 @@ module.exports = {
         },
       ],
     }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, './src/worker/*.js'),
+          to: '[name][ext]',
+        },
+      ],
+    }),
     new FaviconsWebpackPlugin('./public/logo.png'),
     new CleanWebpackPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new Dotenv(),
+    /*
+    new WorkboxPlugin.GenerateSW({
+
+      // these options encourage the ServiceWorkers to get in there fast
+
+      // and not allow any straggling "old" SWs to hang around
+      clientsClaim: true,
+      skipWaiting: true,
+      maximumFileSizeToCacheInBytes: 5000000,
+
+    }),*/
 
   ],
   module: {
@@ -85,9 +105,21 @@ module.exports = {
   },
   experiments: {
     syncWebAssembly: true,
+    topLevelAwait: true
   },
   performance: {
     maxEntrypointSize: 1012000,
-    maxAssetSize: 4212000
+    maxAssetSize: 4212000,
   },
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        commons: {
+          test: /[\\/]node_modules[\\/]/,
+          name: "vendors",
+          chunks: "all"
+        }
+      }
+    }
+  }
 }
