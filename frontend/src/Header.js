@@ -121,7 +121,6 @@ class Header extends React.Component {
                     variant="dense"
                     sx={{ justifyContent: 'space-between', overflowX: 'auto' }}
                 ></Toolbar>
-                {location.protocol == 'https:' ? <HttpDetection /> : ''}
 
                 <Disclaimer/>
             </CssVarsProvider>
