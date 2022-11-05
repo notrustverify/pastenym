@@ -124,11 +124,13 @@ const nym = async () => {
       switch (event.data.kind) {
         case 'SendMessage': {
           const { message, recipient } = event.data.args;
+          console.log(recipient)
           await client.sendMessage(message, recipient);
         }
       }
     }
   };
+
 }
 
 nym()

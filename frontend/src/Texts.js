@@ -98,24 +98,85 @@ function withParams(Component) {
     return (props) => <Component {...props} params={useParams()} />
 }
 
-let pasteNymClientId = process.env.REACT_APP_NYM_CLIENT_SERVER
+let recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
 
 class Texts extends React.Component {
     constructor(props) {
         super(props)
+        this.client = null
 
         this.state = {
-            client: null,
-            self_address: '',
+            self_address: null,
             text: null,
             num_view: null,
-            urlId: null,
+            urlId: this.props.params.urlId,
             created_on: null,
+            ready: false,
+            isPasteRetrieved: false,
+        }
+
+        //worker function not accessible in the browser
+        if (typeof Worker == 'undefined') {
+            console.error('No Web Worker support')
+            return
+        }
+
+        this.getPaste = this.getPaste.bind(this)
+        }
+
+    getPaste() {
+        if (!this.client) {
+            console.error(
+                'Could not send message because worker does not exist'
+            )
+            return
+        }
+
+        const data = {
+            event: 'getText',
+            sender: this.state.self_address,
+            data: {
+                urlId: this.state.urlId,
+            },
+        }
+        const message = JSON.stringify(data)
+
+        this.client.postMessage({
+            kind: 'SendMessage',
+            args: {
+                message,
+                recipient,
+            },
+        })
+    }
+    componentDidMount() {
+        this.client = new Worker(
+            new URL('./worker/worker-nym.js', import.meta.url)
+        )
+
+        this.client.onmessage = (ev) => {
+            if (ev.data && ev.data.kind) {
+                switch (ev.data.kind) {
+                    case 'Ready':
+                        const { selfAddress } = ev.data.args
+                        this.setState({
+                            self_address: selfAddress,
+                            ready: true,
+                        })
+                        break
+                    case 'ReceiveMessage':
+                        const { message } = ev.data.args
+                        this.displayReceived(message)
+                        break
+                }
+            }
         }
     }
 
+    componentDidUpdate() {}
+
     displayReceived(message) {
-        const data = JSON.parse(message.message)
+        const data = JSON.parse(message)
         const replySurb = message.replySurb
 
         if (!data.hasOwnProperty('error')) {
@@ -123,76 +184,41 @@ class Texts extends React.Component {
                 text: he.decode(data['text']),
                 num_view: data['num_view'],
                 created_on: data['created_on'],
-                is_burn: data['is_burn']
+                is_burn: data['is_burn'],
             })
         } else {
             this.setState({
                 text: he.decode(data['error']),
             })
         }
-    }
-
-    componentDidMount() {
         this.setState({
-            urlId: this.props.params.urlId,
-        })
-
-        const loadWasm = async () => {
-            let client = null
-
-            const wasm = await import('@nymproject/nym-client-wasm')
-            wasm.set_panic_hook()
-            const validator = 'https://validator.nymtech.net/api'
-            client = new wasm.NymClient(validator)
-
-            const on_message = (message) => this.displayReceived(message)
-            const on_connect = () =>
-                console.log(
-                    'Established (and authenticated) gateway connection!'
-                )
-
-            client.set_on_gateway_connect(on_connect)
-            client.set_on_message(on_message)
-
-            // this is current limitation of wasm in rust - for async methods you can't take self my reference...
-            // I'm trying to figure out if I can somehow hack my way around it, but for time being you have to re-assign
-            // the object (it's the same one)
-            client = await client.initial_setup()
-
-            this.setState({
-                client: client,
-                self_address: client.self_address(),
-            })
-
-            const data = {
-                event: 'getText',
-                sender: client.self_address(),
-                data: {
-                    urlId: this.state.urlId,
-                },
-            }
-            await this.sendMessageTo(client, JSON.stringify(data))
-        }
-
-        loadWasm().catch(console.error)
-
-        this.setState({
-            loading: true,
+            isPasteRetrieved: true,
         })
     }
 
     componentWillUnmount() {}
 
     // have to pass the client in parameter because setState update the client state after
-    async sendMessageTo(client, message) {
-        client = await client.send_message(message, pasteNymClientId)
+    async sendMessageTo(message) {
+        if (!this.client) {
+            console.error(
+                'Could not send message because worker does not exist'
+            )
+            return
+        }
 
-        this.setState({
-            client: client,
+        this.client.postMessage({
+            kind: 'SendMessage',
+            args: {
+                message,
+                recipient,
+            },
         })
     }
 
     render() {
+        if (this.state.ready && this.state.isPasteRetrieved !== true) this.getPaste()
+
         return (
             <CssVarsProvider theme={theme}>
                 <header>
@@ -236,7 +262,7 @@ class Texts extends React.Component {
                                 }}
                             >
                                 <b>Client id</b>{' '}
-                                {this.state.client ? (
+                                {this.state.self_address ? (
                                     this.state.self_address
                                         .split('@')[0]
                                         .slice(0, 60) + '...'
@@ -261,7 +287,7 @@ class Texts extends React.Component {
                                 }}
                             >
                                 <b>Connected Gateway</b>{' '}
-                                {this.state.client ? (
+                                {this.state.self_address ? (
                                     this.state.self_address.split('@')[1]
                                 ) : (
                                     <CircularProgress
@@ -295,9 +321,7 @@ class Texts extends React.Component {
                                         variant="soft"
                                         size="sm"
                                         color="warning"
-                                    >
-                                        
-                                    </IconButton>
+                                    ></IconButton>
                                 }
                             >
                                 <div>
@@ -326,15 +350,13 @@ class Texts extends React.Component {
                         )}
                         <b>Paste</b>
                         <Box
-                            
                             sx={{
                                 display: 'flex',
                                 whiteSpace: 'pre-wrap',
                                 border: '1px solid  rgb(211,211,211)',
-                                borderRadius: "5px",
+                                borderRadius: '5px',
                                 p: 1,
                             }}
-                            
                         >
                             {this.state.text ? (
                                 this.state.text
