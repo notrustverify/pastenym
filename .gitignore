@@ -426,3 +426,4 @@ nym-client/nym-client
 pastenym
 *.drawio.*
 *.drawio.bkp
+frontend/android/

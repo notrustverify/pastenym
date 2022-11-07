@@ -64,7 +64,7 @@ const nym = async () => {
   // sets up better stack traces in case of in-rust panics
   set_panic_hook();
 
-  console.error("the current mainnet is not compatible with v2! - either use the pre-merge branch or explicitly set the client to use one of V2 QA networks")
+  //console.error("the current mainnet is not compatible with v2! - either use the pre-merge branch or explicitly set the client to use one of V2 QA networks")
   //return
 
   // validator server we will use to get topology from

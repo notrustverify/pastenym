@@ -25,7 +25,6 @@ const root = ReactDOM.createRoot(document.getElementById('root'))
 root.render(<App />)
 
 //to create pwa application, uncomment
-/*
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker
@@ -37,7 +36,7 @@ if ('serviceWorker' in navigator) {
                 console.log('SW registration failed: ', registrationError)
             })
     })
-}*/
+}
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
