@@ -7,9 +7,9 @@ The main goal is to offer a solution for sharing text with [Nym](https://nymtech
 to offer full anonymity, even on metadata level
 
 #### Demo
-Get shared text: [http://paste.notrustverify.ch/zXruebin](http://paste.notrustverify.ch/zXruebin)
+Get shared text: [http://pastenym.ch/zXruebin](http://pastenym.ch/zXruebin)
 
-Share a text: [http://paste.notrustverify.ch/](http://paste.notrustverify.ch/)
+Share a text: [http://pastenym.ch/](http://pastenym.ch/)
 
 ## What Nym is developping ?
 > Nym is developing the infrastructure to prevent this data leakage by protecting every packet’s metadata at the network and application layers.
