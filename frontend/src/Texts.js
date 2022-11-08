@@ -22,6 +22,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import WarningIcon from '@mui/icons-material/Warning'
 import Alert from '@mui/joy/Alert'
 import IconButton from '@mui/joy/IconButton'
+import SyntaxHighlight from './components/SyntaxHighlight'
 
 const muiTheme = extendMuiTheme({
     // This is required to point to `var(--joy-*)` because we are using `CssVarsProvider` from Joy UI.
@@ -122,7 +123,7 @@ class Texts extends React.Component {
         }
 
         this.getPaste = this.getPaste.bind(this)
-        }
+    }
 
     getPaste() {
         if (!this.client) {
@@ -185,6 +186,7 @@ class Texts extends React.Component {
                 num_view: data['num_view'],
                 created_on: data['created_on'],
                 is_burn: data['is_burn'],
+                language: data['language'],
             })
         } else {
             this.setState({
@@ -217,7 +219,8 @@ class Texts extends React.Component {
     }
 
     render() {
-        if (this.state.ready && this.state.isPasteRetrieved !== true) this.getPaste()
+        if (this.state.ready && this.state.isPasteRetrieved !== true)
+            this.getPaste()
 
         return (
             <CssVarsProvider theme={theme}>
@@ -349,6 +352,7 @@ class Texts extends React.Component {
                             </div>
                         )}
                         <b>Paste</b>
+                        {console.log(this.state.language)}
                         <Box
                             sx={{
                                 display: 'flex',
@@ -358,8 +362,18 @@ class Texts extends React.Component {
                                 p: 1,
                             }}
                         >
-                            {this.state.text ? (
-                                this.state.text
+                            
+                            {// if language is set use syntax hightlight
+                            this.state.text ? (
+                                this.state.language ? (
+                                    <SyntaxHighlight
+                                        text={this.state.text}
+                                        language={this.state.language}
+                                        isInput={false}
+                                    />
+                                ) : (
+                                    this.state.text
+                                )
                             ) : (
                                 <Skeleton
                                     variant="rounded"

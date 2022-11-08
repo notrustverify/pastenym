@@ -37,7 +37,11 @@ class PasteNym:
             if data.get('burn') and type(data.get('burn')) == bool:
                 burn = data.get('burn')
 
-            return self.db.insertText(html.escape(text), urlId, private=private,burn=burn)
+            language=None
+            if data.get('language') and type(data.get('language')) == str:
+                language = html.escape(data.get('language'))
+
+            return self.db.insertText(html.escape(text),urlId, language,private=private,burn=burn)
         except KeyError as e:
             print(f"Key not found in newText data as {e}")
             return None

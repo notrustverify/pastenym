@@ -15,6 +15,7 @@ import ErrorModal from './components/ErrorModal'
 import SuccessUrlId from './components/SuccessUrlId'
 import Checkbox from '@mui/joy/Checkbox'
 import Tooltip from '@mui/joy/Tooltip'
+import SyntaxHighlight from './components/SyntaxHighlight'
 
 let recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
 
@@ -81,9 +82,12 @@ class UserInput extends React.Component {
             publicKey: null,
             privateKey: null,
             burnChecked: false,
+            syntaxCheck: false,
+            language: null,
         }
 
         this.sendText = this.sendText.bind(this)
+        this.setLanguageState = this.setLanguageState.bind(this)
     }
 
     componentDidMount() {
@@ -113,12 +117,18 @@ class UserInput extends React.Component {
                 }
             }
         }
-
     }
-
 
     componentWillUnmount() {}
 
+    //this will set language receive from child componenet SyntaxHighlight
+    setLanguageState(obj) {
+        Object.keys(obj).forEach((key) => {
+            this.setState({
+                [key]: obj[key],
+            })
+        })
+    }
 
     displayReceived(message) {
         const content = message
@@ -178,6 +188,7 @@ class UserInput extends React.Component {
                     text: this.state.text,
                     private: true,
                     burn: this.state.burnChecked,
+                    language: this.state.language
                 },
             }
             this.sendMessageTo(JSON.stringify(data))
@@ -275,7 +286,6 @@ class UserInput extends React.Component {
                                 )}
                             </Typography>
                         </div>
-
                         {
                             // use buttonClick to reload the message
                             this.state.urlId && !this.state.buttonSendClick ? (
@@ -289,7 +299,6 @@ class UserInput extends React.Component {
                         ) : (
                             ''
                         )}
-
                         <Typography
                             fontSize="sm"
                             sx={{
@@ -300,7 +309,6 @@ class UserInput extends React.Component {
                         >
                             <b>New paste</b>
                         </Typography>
-
                         <Box
                             sx={{
                                 display: 'flex',
@@ -323,30 +331,54 @@ class UserInput extends React.Component {
                                     size="sm"
                                     label="Burn after reading"
                                 />
-                            </Tooltip>
-                        </Box>
+                            </Tooltip>{' '}
+                            <Checkbox
+                                onChange={(event) =>
+                                    this.setState({
+                                        syntaxCheck: event.target.checked,
+                                        language: null
+                                    })
+                                }
+                                size="sm"
+                                label="Syntax Highlighting"
+                            />
+                        </Box>{' '}
 
-                        <Textarea
-                            sx={{}}
-                            label="New paste"
-                            placeholder="Type in here…"
-                            minRows={10}
-                            fullwidth="true"
-                            required
-                            autoFocus
-                            value={this.state.text}
-                            onChange={(event) =>
-                                this.setState({ text: event.target.value })
-                            }
-                            startDecorator={
-                                <Box sx={{ display: 'flex', gap: 0.5 }}></Box>
-                            }
-                            endDecorator={
-                                <Typography level="body3" sx={{ ml: 'auto' }}>
-                                    {this.state.text.length} character(s)
-                                </Typography>
-                            }
-                        />
+                        {this.state.syntaxCheck ? (
+                            <SyntaxHighlight
+                                text={this.state.text}
+                                setLanguageState={this.setLanguageState}
+                                language={this.state.language}
+                                isInput={true}
+                            />
+                        ) : (
+                            <Textarea
+                                sx={{}}
+                                label="New paste"
+                                placeholder="Type in here…"
+                                minRows={10}
+                                fullwidth="true"
+                                required
+                                autoFocus
+                                value={this.state.text}
+                                onChange={(event) =>
+                                    this.setState({ text: event.target.value })
+                                }
+                                startDecorator={
+                                    <Box
+                                        sx={{ display: 'flex', gap: 0.5 }}
+                                    ></Box>
+                                }
+                                endDecorator={
+                                    <Typography
+                                        level="body3"
+                                        sx={{ ml: 'auto' }}
+                                    >
+                                        {this.state.text.length} character(s)
+                                    </Typography>
+                                }
+                            />
+                        )}
                         <Button
                             disabled={this.state.self_address ? false : true}
                             loading={this.state.buttonSendClick}
