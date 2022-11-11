@@ -188,7 +188,7 @@ class UserInput extends React.Component {
                     text: this.state.text,
                     private: true,
                     burn: this.state.burnChecked,
-                    language: this.state.language
+                    language: this.state.language,
                 },
             }
             this.sendMessageTo(JSON.stringify(data))
@@ -317,6 +317,7 @@ class UserInput extends React.Component {
                                 justifyContent: 'left',
                             }}
                         >
+                            
                             <Tooltip
                                 title="message will be deleted when read"
                                 size="sm"
@@ -332,53 +333,35 @@ class UserInput extends React.Component {
                                     label="Burn after reading"
                                 />
                             </Tooltip>{' '}
-                            <Checkbox
-                                onChange={(event) =>
-                                    this.setState({
-                                        syntaxCheck: event.target.checked,
-                                        language: null
-                                    })
-                                }
-                                size="sm"
-                                label="Syntax Highlighting"
-                            />
+                                <SyntaxHighlight
+                                    text={this.state.text}
+                                    setLanguageState={this.setLanguageState}
+                                    language={this.state.language}
+                                    isInput={true}
+                                />
+                            
                         </Box>{' '}
-
-                        {this.state.syntaxCheck ? (
-                            <SyntaxHighlight
-                                text={this.state.text}
-                                setLanguageState={this.setLanguageState}
-                                language={this.state.language}
-                                isInput={true}
-                            />
-                        ) : (
-                            <Textarea
-                                sx={{}}
-                                label="New paste"
-                                placeholder="Type in here…"
-                                minRows={10}
-                                fullwidth="true"
-                                required
-                                autoFocus
-                                value={this.state.text}
-                                onChange={(event) =>
-                                    this.setState({ text: event.target.value })
-                                }
-                                startDecorator={
-                                    <Box
-                                        sx={{ display: 'flex', gap: 0.5 }}
-                                    ></Box>
-                                }
-                                endDecorator={
-                                    <Typography
-                                        level="body3"
-                                        sx={{ ml: 'auto' }}
-                                    >
-                                        {this.state.text.length} character(s)
-                                    </Typography>
-                                }
-                            />
-                        )}
+                        <Textarea
+                            sx={{}}
+                            label="New paste"
+                            placeholder="Type in here…"
+                            minRows={10}
+                            fullwidth="true"
+                            required
+                            autoFocus
+                            value={this.state.text}
+                            onChange={(event) =>
+                                this.setState({ text: event.target.value })
+                            }
+                            startDecorator={
+                                <Box sx={{ display: 'flex', gap: 0.5 }}></Box>
+                            }
+                            endDecorator={
+                                <Typography level="body3" sx={{ ml: 'auto' }}>
+                                    {this.state.text.length} character(s)
+                                </Typography>
+                            }
+                        />
                         <Button
                             disabled={this.state.self_address ? false : true}
                             loading={this.state.buttonSendClick}

@@ -15,6 +15,9 @@ import {
     useColorScheme,
 } from '@mui/joy/styles'
 
+import { bottom } from '@mui/system'
+
+
 const muiTheme = extendMuiTheme({
     // This is required to point to `var(--joy-*)` because we are using `CssVarsProvider` from Joy UI.
     cssVarPrefix: 'joy',
@@ -91,24 +94,33 @@ class SyntaxHighlight extends React.Component {
     render() {
         return (
             <CssVarsProvider theme={theme}>
-                {this.props.isInput ? <Autocomplete
-                    disablePortal
-                    id="language-box"
-                    options={SyntaxHighlighter.supportedLanguages}
-                    sx={{ width: 300, height: '50%' }}
-                    onChange={(event) => {
-                        this.props.setLanguageState({
-                            language: event.target.textContent,
-                        })
-                    }}
-                    size="sm"
-                    renderInput={(params) => (
-                        <TextField {...params} label="Language" />
-                    )}
-                />: ''}
-                <SyntaxHighlighter language={this.props.language} style={docco}>
-                    {this.props.text}
-                </SyntaxHighlighter>
+                {this.props.isInput ? (
+                    <Autocomplete
+                        disablePortal
+                        id="language-box"
+                        options={SyntaxHighlighter.supportedLanguages}
+                        sx={{
+                            width: "auto",
+                            mt: -3
+                        }}
+                        onChange={(event) => {
+                            this.props.setLanguageState({
+                                language: event.target.textContent,
+                            })
+                        }}
+                        size="small"
+                        renderInput={(params) => (
+                            <TextField {...params} label="Syntax Highlighting" placeholder="Name" />
+                        )}
+                    />
+                ) : (
+                    <SyntaxHighlighter
+                        language={this.props.language}
+                        style={docco}
+                    >
+                        {this.props.text}
+                    </SyntaxHighlighter>
+                )}
             </CssVarsProvider>
         )
     }
