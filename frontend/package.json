@@ -1,6 +1,6 @@
 {
-  "name": "frontend",
-  "version": "0.1.0",
+  "name": "pastenym",
+  "version": "1.0.0",
   "homepage": "http://pastenym.ch/",
   "private": true,
   "main": "index.js",
