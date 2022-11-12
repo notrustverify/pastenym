@@ -1,6 +1,9 @@
 import * as React from 'react'
 import Breadcrumbs from '@mui/joy/Breadcrumbs'
 import Link from '@mui/joy/Link'
+import { Link as RouterLink } from 'react-router-dom'
+import UserInput from './UserInput'
+
 import HttpDetection from './components/HttpDetection'
 import Box from '@mui/joy/Box'
 import AppBar from '@mui/material/AppBar'
@@ -88,13 +91,18 @@ const joyTheme = extendJoyTheme()
 const theme = deepmerge(muiTheme, joyTheme)
 
 class Header extends React.Component {
+    constructor(props) {
+        super(props)
+    }
+
     render() {
         return (
             <CssVarsProvider theme={theme}>
                 <Toolbar sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Link href="/">
+                    <Link component={RouterLink} to="/">
                         <Button size="small">New paste</Button>
                     </Link>
+
                     <Typography
                         component="h2"
                         variant="h5"
@@ -104,9 +112,10 @@ class Header extends React.Component {
                         sx={{ flex: 1 }}
                     >
                         <Link
+                            component={RouterLink}
+                            to="/"
                             underline="none"
                             color="inherit"
-                            href="/"
                             variant="outlined"
                         >
                             Pastenym
@@ -122,7 +131,7 @@ class Header extends React.Component {
                     sx={{ justifyContent: 'space-between', overflowX: 'auto' }}
                 ></Toolbar>
 
-                <Disclaimer/>
+                <Disclaimer />
             </CssVarsProvider>
         )
     }

@@ -15,6 +15,11 @@ import ErrorModal from './components/ErrorModal'
 import SuccessUrlId from './components/SuccessUrlId'
 import Checkbox from '@mui/joy/Checkbox'
 import Tooltip from '@mui/joy/Tooltip'
+import ShowText from './components/ShowText'
+import Stack from '@mui/joy/Stack'
+import TextField from '@mui/joy/TextField'
+import ScreenSearchDesktopIcon from '@mui/icons-material/ScreenSearchDesktop'
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 
 let recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
 
@@ -81,9 +86,13 @@ class UserInput extends React.Component {
             publicKey: null,
             privateKey: null,
             burnChecked: false,
+            textReceived: null,
+            urlIdGet: null,
+            buttonGetClick: false,
         }
 
         this.sendText = this.sendText.bind(this)
+        this.getPaste = this.getPaste.bind(this)
     }
 
     componentDidMount() {
@@ -113,12 +122,9 @@ class UserInput extends React.Component {
                 }
             }
         }
-
     }
 
-
     componentWillUnmount() {}
-
 
     displayReceived(message) {
         const content = message
@@ -127,24 +133,57 @@ class UserInput extends React.Component {
         if (content.length > 0) {
             if (content.toLowerCase().includes('error')) {
                 this.setState({
-                    open: true,
-                    textError: content,
+                    open: false,
                 })
-            } else {
-                //use a wrapper, withRouter to use navigate hooks
-                //this.props.navigate('/' + content)
+
+                let textError = content
+
+                if (this.isJson(content))
+                    textError = JSON.parse(content)['error']
+
                 this.setState({
-                    urlId: content,
-                    buttonSendClick: false,
+                    open: true,
+                    textError: textError,
+                    buttonGetClick: false,
                 })
+
+            } else {
+                if (!this.isJson(content)) {
+                    this.setState({
+                        urlId: content,
+                        buttonSendClick: false,
+                    })
+
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth',
+                    })
+                } else {
+                    this.setState({
+                        textReceived: JSON.parse(content),
+                        buttonGetClick: false,
+                    })
+                }
             }
         } else {
             console.log(content)
         }
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth',
-        })
+    }
+
+    isJson(item) {
+        item = typeof item !== 'string' ? JSON.stringify(item) : item
+
+        try {
+            item = JSON.parse(item)
+        } catch (e) {
+            return false
+        }
+
+        if (typeof item === 'object' && item !== null) {
+            return true
+        }
+
+        return false
     }
 
     async sendMessageTo(message) {
@@ -154,6 +193,47 @@ class UserInput extends React.Component {
             )
             return
         }
+
+        this.client.postMessage({
+            kind: 'SendMessage',
+            args: {
+                message,
+                recipient,
+            },
+        })
+    }
+
+    getPaste() {
+        if (!this.client) {
+            console.error(
+                'Could not send message because worker does not exist'
+            )
+            return
+        }
+
+        this.setState({
+            textReceived: null,
+            buttonGetClick: true,
+        })
+
+        let urlId = ''
+
+        //keep only urlid part, remove http...
+        if (this.state.urlIdGet.split('/').length > 1)
+            urlId = this.state.urlIdGet.split('/').reverse()[0]
+        else urlId = this.state.urlIdGet
+
+        //remove key
+        if (urlId.split('?').length > 1) urlId.split('?')[0]
+
+        const data = {
+            event: 'getText',
+            sender: this.state.self_address,
+            data: {
+                urlId: urlId,
+            },
+        }
+        const message = JSON.stringify(data)
 
         this.client.postMessage({
             kind: 'SendMessage',
@@ -194,7 +274,7 @@ class UserInput extends React.Component {
             //<CssVarsProvider theme={theme}>
             <CssVarsProvider>
                 <header>
-                    <Header />
+                    <Header state={this.state.self_address} />
                 </header>
                 <main>
                     <Sheet
@@ -289,6 +369,44 @@ class UserInput extends React.Component {
                         ) : (
                             ''
                         )}
+                        <Box
+                            sx={{
+                                gap: 4,
+                                width: 'auto',
+                                justifyContent: 'left',
+                            }}
+                        >
+                            <TextField
+                                placeholder="Enter the URL ID"
+                                variant="outlined"
+                                startDecorator={<ScreenSearchDesktopIcon />}
+                                onChange={(event) =>
+                                    this.setState({
+                                        urlIdGet: event.target.value,
+                                    })
+                                }
+                                endDecorator={
+                                    <Button
+                                        size="sm"
+                                        loading={this.state.buttonGetClick}
+                                        disabled={
+                                            this.state.self_address
+                                                ? false
+                                                : true
+                                        }
+                                        onClick={this.getPaste}
+                                    >
+                                        <SendIcon size="sm" />
+                                    </Button>
+                                }
+                            />
+                        </Box>
+
+                        {this.state.textReceived ? (
+                            <ShowText data={this.state.textReceived} />
+                        ) : (
+                            ''
+                        )}
 
                         <Typography
                             fontSize="sm"
@@ -347,6 +465,7 @@ class UserInput extends React.Component {
                                 </Typography>
                             }
                         />
+
                         <Button
                             disabled={this.state.self_address ? false : true}
                             loading={this.state.buttonSendClick}
