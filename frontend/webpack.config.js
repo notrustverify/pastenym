@@ -43,7 +43,18 @@ module.exports = {
         },
       ],
     }),
-    new FaviconsWebpackPlugin('./public/logo.png'),
+    new FaviconsWebpackPlugin({logo: './public/logo.png',favicons: {
+      appName: 'Pastenym',
+      appDescription: 'Share text anonymously',
+      developerName: 'No Trust Verify',
+      developerURL: null, // prevent retrieving from the nearest package.json
+      background: '#ebdbdb',
+      theme_color: '#e8e5e1',
+      icons: {
+        coast: false,
+        yandex: false
+      }
+    }}),
     new CleanWebpackPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new Dotenv(),
