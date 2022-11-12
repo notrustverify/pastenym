@@ -50,7 +50,7 @@ class PasteNym:
         try:
 
             if data.get('urlId') and type(data.get('urlId')) == str:
-                urlId = data.get('urlId')
+                urlId = data.get('urlId').strip()
             else:
                 return None
 
