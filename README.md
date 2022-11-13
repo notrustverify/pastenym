@@ -48,7 +48,7 @@ It uses [pipenv](https://pipenv.pypa.io/en/latest/install/)
 1. Go to `backend/`
 2. `pipenv shell` to start the python env
 3. `pipenv install` to install the dependancies from the PipFile
-4. `python -c "from db import *; create_tables()" ` to init the DB
+4. `python -c "from db import *; create_tables()"` to init the DB
 5. `python main.py` to start the service
 
 ### Frontend
