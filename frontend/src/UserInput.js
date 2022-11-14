@@ -20,61 +20,14 @@ import Stack from '@mui/joy/Stack'
 import TextField from '@mui/joy/TextField'
 import ScreenSearchDesktopIcon from '@mui/icons-material/ScreenSearchDesktop'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import { createNymMixnetClient } from '@nymproject/sdk'
 
 let recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
-
-class WebWorkerClient {
-    worker = null
-
-    constructor() {
-        //worker function not accessible in the browser
-        if (typeof Worker == 'undefined') {
-            console.error('No Web Worker support')
-            return
-        }
-
-        this.worker = new Worker(
-            new URL('./worker/worker-nym.js', import.meta.url)
-        )
-
-        this.worker.onmessage = (ev) => {
-            if (ev.data && ev.data.kind) {
-                switch (ev.data.kind) {
-                    case 'Ready':
-                        const { selfAddress } = ev.data.args
-                        setSelfAddress(selfAddress)
-                        break
-                    case 'ReceiveMessage':
-                        const { message } = ev.data.args
-                        displayReceived(message)
-                        break
-                }
-            }
-        }
-    }
-
-    sendMessage = (message, recipient) => {
-        if (!this.worker) {
-            console.error(
-                'Could not send message because worker does not exist'
-            )
-            return
-        }
-
-        this.worker.postMessage({
-            kind: 'SendMessage',
-            args: {
-                message,
-                recipient,
-            },
-        })
-    }
-}
 
 class UserInput extends React.Component {
     constructor(props) {
         super(props)
-        this.client = null
+        this.nym = null
 
         this.state = {
             self_address: null,
@@ -95,40 +48,44 @@ class UserInput extends React.Component {
         this.getPaste = this.getPaste.bind(this)
     }
 
-    componentDidMount() {
-        //worker function not accessible in the browser
-        if (typeof Worker == 'undefined') {
-            console.error('No Web Worker support')
-            return
-        }
+    async componentDidMount() {
+        this.nym = await createNymMixnetClient()
+        // mixnet v1
+        //const validatorApiUrl = 'https://validator.nymtech.net/api'
+        //const preferredGatewayIdentityKey =
+        ;('')
+        // mixnet v2
+        const validatorApiUrl = 'https://qwerty-validator-api.qa.nymte.ch/api'
+        const preferredGatewayIdentityKey =
+            'E3mvZTHQCdBvhfr178Swx9g4QG3kkRUun7YnToLMcMbM'
 
-        this.client = new Worker(
-            new URL('./worker/worker-nym.js', import.meta.url)
-        )
+        // show message payload content when received
+        this.nym.events.subscribeToTextMessageReceivedEvent((e) => {
+            console.log('Got a message: ', e.args.payload)
+            this.displayReceived(e.args.payload)
+        })
 
-        this.client.onmessage = (ev) => {
-            if (ev.data && ev.data.kind) {
-                switch (ev.data.kind) {
-                    case 'Ready':
-                        const { selfAddress } = ev.data.args
-                        this.setState({
-                            self_address: selfAddress,
-                        })
-                        break
-                    case 'ReceiveMessage':
-                        const { message } = ev.data.args
-                        this.displayReceived(message)
-                        break
-                }
+        this.nym.events.subscribeToConnected((e) => {
+            if (e.args.address) {
+                this.setState({
+                    self_address: e.args.address,
+                    ready: true,
+                })
             }
-        }
+        })
+
+        // start the client and connect to a gateway
+        await this.nym.client.start({
+            clientId: 'pastenym-client',
+            validatorApiUrl,
+            preferredGatewayIdentityKey,
+        })
     }
 
     componentWillUnmount() {}
 
     displayReceived(message) {
         const content = message
-        const replySurb = message.replySurb
 
         if (content.length > 0) {
             if (content.toLowerCase().includes('error')) {
@@ -146,7 +103,6 @@ class UserInput extends React.Component {
                     textError: textError,
                     buttonGetClick: false,
                 })
-
             } else {
                 if (!this.isJson(content)) {
                     this.setState({
@@ -187,24 +143,24 @@ class UserInput extends React.Component {
     }
 
     async sendMessageTo(message) {
-        if (!this.client) {
+        if (!this.nym) {
             console.error(
                 'Could not send message because worker does not exist'
             )
             return
         }
-
-        this.client.postMessage({
-            kind: 'SendMessage',
-            args: {
-                message,
-                recipient,
-            },
+        console.log({
+            message,
+            recipient,
+        })
+        await this.nym.client.sendMessage({
+            payload: message,
+            recipient,
         })
     }
 
     getPaste() {
-        if (!this.client) {
+        if (!this.nym) {
             console.error(
                 'Could not send message because worker does not exist'
             )
@@ -235,12 +191,9 @@ class UserInput extends React.Component {
         }
         const message = JSON.stringify(data)
 
-        this.client.postMessage({
-            kind: 'SendMessage',
-            args: {
-                message,
-                recipient,
-            },
+        this.nym.client.sendMessage({
+            payload: message,
+            recipient,
         })
     }
 
