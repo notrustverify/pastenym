@@ -22,7 +22,7 @@ class SuccessUrlId extends React.Component {
         super(props)
 
         this.state = {
-            url: SERVER_NAME + '/' + this.props.urlId,
+            url: SERVER_NAME + '/#/' + this.props.urlId,
             urlId: this.props.urlId,
             open: false,
             textButton: 'Copy to clipboard',

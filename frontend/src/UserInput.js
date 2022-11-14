@@ -219,7 +219,7 @@ class UserInput extends React.Component {
         let urlId = ''
 
         //keep only urlid part, remove http...
-        if (this.state.urlIdGet.split('/').length > 1)
+        if (this.state.urlIdGet.split('/#/').length > 1 || this.state.urlIdGet.split('/').length > 1 )
             urlId = this.state.urlIdGet.split('/').reverse()[0]
         else urlId = this.state.urlIdGet
 
