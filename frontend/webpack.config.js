@@ -43,7 +43,7 @@ module.exports = {
         },
       ],
     }),
-    new FaviconsWebpackPlugin({logo: './public/logo.png',favicons: {
+    new FaviconsWebpackPlugin({logo: './public/logo.svg',favicons: {
       appName: 'Pastenym',
       appDescription: 'Share text anonymously',
       developerName: 'No Trust Verify',
