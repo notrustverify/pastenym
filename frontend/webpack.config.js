@@ -48,12 +48,13 @@ module.exports = {
       appDescription: 'Share text anonymously',
       developerName: 'No Trust Verify',
       developerURL: null, // prevent retrieving from the nearest package.json
-      background: '#ebdbdb',
+      background: '#FFFFFF',
       theme_color: '#e8e5e1',
       icons: {
         coast: false,
         yandex: false
-      }
+      },
+      inject: true,
     }}),
     new CleanWebpackPlugin(),
     new webpack.HotModuleReplacementPlugin(),
