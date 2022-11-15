@@ -1,0 +1,11 @@
+
+version: '3'
+
+services:
+  pastenym-frontend:
+    build: .
+    restart: unless-stopped
+    volume:
+      ./dist:/app/dist
+    ports:
+      - 8001:80
