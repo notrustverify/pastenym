@@ -15,14 +15,14 @@ import ContentCopy from '@mui/icons-material/ContentCopy'
 import Tooltip from '@mui/joy/Tooltip'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
 
-const SERVER_NAME = process.env.SERVER_NAME || "https://paste.notrustverify.ch"
+const SERVER_NAME = process.env.SERVER_NAME || "https://pastenym.ch"
 
 class SuccessUrlId extends React.Component {
     constructor(props) {
         super(props)
 
         this.state = {
-            url: SERVER_NAME + '/' + this.props.urlId,
+            url: SERVER_NAME + '/#/' + this.props.urlId,
             urlId: this.props.urlId,
             open: false,
             textButton: 'Copy to clipboard',

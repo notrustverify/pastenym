@@ -51,15 +51,16 @@ class UserInput extends React.Component {
     async componentDidMount() {
         this.nym = await createNymMixnetClient()
         // mixnet v1
-        //const validatorApiUrl = 'https://validator.nymtech.net/api'
+        const validatorApiUrl = 'https://validator.nymtech.net/api'
         //const preferredGatewayIdentityKey =
-        ;('')
+    
         // mixnet v2
-        const validatorApiUrl = 'https://qwerty-validator-api.qa.nymte.ch/api'
+        //const validatorApiUrl = 'https://qwerty-validator-api.qa.nymte.ch/api'
         const preferredGatewayIdentityKey =
             'E3mvZTHQCdBvhfr178Swx9g4QG3kkRUun7YnToLMcMbM'
-
+            
         // show message payload content when received
+        
         this.nym.events.subscribeToTextMessageReceivedEvent((e) => {
             console.log('Got a message: ', e.args.payload)
             this.displayReceived(e.args.payload)
@@ -73,12 +74,12 @@ class UserInput extends React.Component {
                 })
             }
         })
-
+        
         // start the client and connect to a gateway
         await this.nym.client.start({
-            clientId: 'pastenym-client',
+            clientId: 'pastenymClient',
             validatorApiUrl,
-            preferredGatewayIdentityKey,
+            preferredGatewayIdentityKey
         })
     }
 
@@ -175,7 +176,7 @@ class UserInput extends React.Component {
         let urlId = ''
 
         //keep only urlid part, remove http...
-        if (this.state.urlIdGet.split('/').length > 1)
+        if (this.state.urlIdGet.split('/').length > 1 || this.state.urlIdGet.split('/').length > 1)
             urlId = this.state.urlIdGet.split('/').reverse()[0]
         else urlId = this.state.urlIdGet
 

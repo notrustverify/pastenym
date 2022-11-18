@@ -4,20 +4,28 @@ import './index.css'
 import UserInput from './UserInput'
 import Texts from './Texts'
 import reportWebVitals from './reportWebVitals'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { HashRouter, Routes, Route } from 'react-router-dom'
 
 if (module.hot) module.hot.accept()
 
 export default function App() {
+
+
+    //hack to redirect old urlid to new
+    if (!window.location.hash) {
+        window.history.replaceState({}, null, "/#/"+window.location.pathname.split('/')[1])
+     }
+
+     
     return (
-        <BrowserRouter>
+        <HashRouter>
             <Routes>
                 <Route path="/" element={<UserInput />} />
                 <Route path="/protec" element={<UserInput />} />
                 <Route path=":urlId" element={<Texts />} />
                 <Route path="*" element={<Texts />} />
             </Routes>
-        </BrowserRouter>
+        </HashRouter>
     )
 }
 
