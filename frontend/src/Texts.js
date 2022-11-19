@@ -165,6 +165,7 @@ class Texts extends React.Component {
             clientId: 'pastenymClient',
             validatorApiUrl,
             preferredGatewayIdentityKey,
+            gatewayListener: "wss://gateway1.nymtech.net:443"
         })
     }
 
