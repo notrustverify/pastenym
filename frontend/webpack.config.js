@@ -7,6 +7,7 @@ const Dotenv = require('dotenv-webpack')
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
 
+
 module.exports = {
   entry: {
     main: path.resolve(__dirname, './src/index.js'),
@@ -27,22 +28,6 @@ module.exports = {
       template: path.resolve(__dirname, './src/index.html'), // template file      
       filename: 'index.html', // output file  
     }),
-    new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: path.resolve(__dirname, 'node_modules/@nymproject/nym-client-wasm/*.(js|wasm)'),
-          to: '[name][ext]',
-        },
-      ],
-    }),
-    new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: path.resolve(__dirname, './src/worker/*.js'),
-          to: '[name][ext]',
-        },
-      ],
-    }),
     new FaviconsWebpackPlugin({logo: './public/logo.svg',favicons: {
       appName: 'Pastenym',
       appDescription: 'Share text anonymously',
@@ -60,6 +45,7 @@ module.exports = {
     new webpack.HotModuleReplacementPlugin(),
     new Dotenv(),
     
+    /** 
     new WorkboxPlugin.GenerateSW({
       // these options encourage the ServiceWorkers to get in there fast
       // and not allow any straggling "old" SWs to hang around
@@ -68,7 +54,7 @@ module.exports = {
       maximumFileSizeToCacheInBytes: 5000000,
     }),
     
-    
+    */
   ],
   module: {
     rules: [

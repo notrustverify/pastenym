@@ -16,7 +16,7 @@ export default function App() {
         window.history.replaceState({}, null, "/#/"+window.location.pathname.split('/')[1])
      }
 
-     
+
     return (
         <HashRouter>
             <Routes>
@@ -33,6 +33,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'))
 root.render(<App />)
 
 //to create pwa application, uncomment
+/**
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker
@@ -45,7 +46,7 @@ if ('serviceWorker' in navigator) {
             })
     })
 }
-
+ */
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
