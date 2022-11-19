@@ -6,6 +6,7 @@ import Texts from './Texts'
 import reportWebVitals from './reportWebVitals'
 import { Routes, Route, HashRouter } from 'react-router-dom'
 
+
 if (module.hot) module.hot.accept()
 
 export default function App() {
@@ -23,7 +24,6 @@ export default function App() {
                 <Route path=":urlId" element={<Texts />} />
             </Routes>
         </HashRouter>
-
     )
 }
 
@@ -43,7 +43,6 @@ if ('serviceWorker' in navigator) {
             })
     })
 }
-
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals

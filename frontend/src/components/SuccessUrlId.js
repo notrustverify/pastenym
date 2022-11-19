@@ -15,7 +15,7 @@ import ContentCopy from '@mui/icons-material/ContentCopy'
 import Tooltip from '@mui/joy/Tooltip'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
 
-const SERVER_NAME = process.env.SERVER_NAME || "https://paste.notrustverify.ch"
+const SERVER_NAME = process.env.SERVER_NAME || "https://pastenym.ch"
 
 class SuccessUrlId extends React.Component {
     constructor(props) {

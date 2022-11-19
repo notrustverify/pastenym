@@ -14,14 +14,26 @@ self_address_request = json.dumps({
 CMD_NEW_TEXT = "newText"
 CMD_GET_TEXT = "getText"
 
+NYM_KIND_TEXT=b'\x00'*8 #uint8
+NYM_KIND_BINARY=b'\x01'
+
+NYM_HEADER_SIZE_TEXT=b'\x00' #set to 0 if it's a text
+NYM_HEADER_BINARY=b'\x00' # not used now, to investigate later
+
 
 class Serve:
 
     @staticmethod
-    def createPayload(recipient, reply_message):
+    def createPayload(recipient, reply_message,is_text=True):
+        if is_text:
+            metadata = (NYM_KIND_TEXT+NYM_HEADER_SIZE_TEXT).decode('utf-8')
+        else:
+             # not used now, to investigate later 
+            metadata = (NYM_KIND_BINARY+NYM_HEADER_BINARY).decode('utf-8')
+
         return json.dumps({
             "type": "send",
-            "message": reply_message,
+            "message": metadata+reply_message, # append \x00 because of "kind" message is non binary and equal 0 + 1 bytes because no header are set
             "recipient": recipient,
             "withReplySurb": False
             # "replySurb": reply_surb
@@ -72,21 +84,22 @@ class Serve:
                 print("our address is: {}".format(self_address["address"]))
                 self.firstRun = False
                 return
-
             received_message = json.loads(message)
+           
             recipient = None
-            print(received_message)
         except UnicodeDecodeError as e:
             print("Unicode error, nothing to do about, {e}")
             return
 
         # we received the data in a json
         try:
-            received_data = json.loads(received_message['message'])
+            # received data with padding, remove them
+            received_data = json.loads(received_message['message'].replace("\x00",""))
+            
             recipient = received_data['sender']
             event = received_data['event']
             data = received_data['data']
-
+            print(received_message)
         except (IndexError,KeyError,json.JSONDecodeError) as e:
             if recipient is not None:
                 err_msg = f"error parsing message, {e}"

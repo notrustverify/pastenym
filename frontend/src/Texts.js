@@ -22,6 +22,8 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import WarningIcon from '@mui/icons-material/Warning'
 import Alert from '@mui/joy/Alert'
 import IconButton from '@mui/joy/IconButton'
+import { createNymMixnetClient } from '@nymproject/sdk'
+
 
 const muiTheme = extendMuiTheme({
     // This is required to point to `var(--joy-*)` because we are using `CssVarsProvider` from Joy UI.
@@ -103,7 +105,7 @@ let recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
 class Texts extends React.Component {
     constructor(props) {
         super(props)
-        this.client = null
+        this.nym = null
 
         this.state = {
             self_address: null,
@@ -115,17 +117,12 @@ class Texts extends React.Component {
             isPasteRetrieved: false,
         }
 
-        //worker function not accessible in the browser
-        if (typeof Worker == 'undefined') {
-            console.error('No Web Worker support')
-            return
-        }
 
         this.getPaste = this.getPaste.bind(this)
         }
 
     getPaste() {
-        if (!this.client) {
+        if (!this.nym) {
             console.error(
                 'Could not send message because worker does not exist'
             )
@@ -141,36 +138,34 @@ class Texts extends React.Component {
         }
         const message = JSON.stringify(data)
 
-        this.client.postMessage({
-            kind: 'SendMessage',
-            args: {
-                message,
-                recipient,
-            },
-        })
+        this.sendMessageTo(message)
     }
-    componentDidMount() {
-        this.client = new Worker(
-            new URL('./worker/worker-nym.js', import.meta.url)
-        )
+    async componentDidMount() {
+        this.nym = await createNymMixnetClient()
 
-        this.client.onmessage = (ev) => {
-            if (ev.data && ev.data.kind) {
-                switch (ev.data.kind) {
-                    case 'Ready':
-                        const { selfAddress } = ev.data.args
-                        this.setState({
-                            self_address: selfAddress,
-                            ready: true,
-                        })
-                        break
-                    case 'ReceiveMessage':
-                        const { message } = ev.data.args
-                        this.displayReceived(message)
-                        break
-                }
+        const validatorApiUrl = 'https://validator.nymtech.net/api'
+        const preferredGatewayIdentityKey =
+            'E3mvZTHQCdBvhfr178Swx9g4QG3kkRUun7YnToLMcMbM'
+
+        this.nym.events.subscribeToTextMessageReceivedEvent((e) => {
+            this.displayReceived(e.args.payload)
+        })
+
+        this.nym.events.subscribeToConnected((e) => {
+            if (e.args.address) {
+                this.setState({
+                    self_address: e.args.address,
+                    ready: true,
+                })
             }
-        }
+        })
+
+        // start the client and connect to a gateway
+        await this.nym.client.start({
+            clientId: 'pastenymClient',
+            validatorApiUrl,
+            preferredGatewayIdentityKey,
+        })
     }
 
     componentDidUpdate() {}
@@ -198,21 +193,17 @@ class Texts extends React.Component {
 
     componentWillUnmount() {}
 
-    // have to pass the client in parameter because setState update the client state after
-    async sendMessageTo(message) {
-        if (!this.client) {
+    async sendMessageTo(payload) {
+        if (!this.nym) {
             console.error(
                 'Could not send message because worker does not exist'
             )
             return
         }
-
-        this.client.postMessage({
-            kind: 'SendMessage',
-            args: {
-                message,
-                recipient,
-            },
+  
+        await this.nym.client.sendMessage({
+            payload,
+            recipient,
         })
     }
 
