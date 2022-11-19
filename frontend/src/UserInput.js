@@ -417,7 +417,7 @@ class UserInput extends React.Component {
 
                         <Button
                             disabled={this.state.self_address ? false : true}
-                            //loading={this.state.buttonSendClick}
+                            loading={this.state.buttonSendClick}
                             onClick={this.sendText}
                             endDecorator={<SendIcon />}
                             sx={{ mt: 1 /* margin top */ }}
