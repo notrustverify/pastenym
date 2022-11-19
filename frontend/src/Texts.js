@@ -116,8 +116,6 @@ class Texts extends React.Component {
             let [key, val] = elt
             this.params[key] = val
         }
-        console.log(`urlId: ${urlId}`)
-        console.log(this.params)
 
         this.state = {
             self_address: null,
@@ -181,13 +179,18 @@ class Texts extends React.Component {
         if (!data.hasOwnProperty('error')) {
             let text = he.decode(data['text'])
 
-            // Decrypt if key is provided
-            if (this.state.isKeyProvided) {
-                text = this.encryptor.decrypt(text)
+            // Decrypt if text is encrypted
+            if (data.hasOwnProperty('encParams') && undefined != data['encParams']) {
+                if (!this.state.isKeyProvided) {
+                    console.error("Text seems to be encrypted but no key is provided. Displaying encrypted text")
+                } else {
+                    const encParams = data['encParams']
+                    text = this.encryptor.decrypt(text, encParams)
+                }
             }
 
             this.setState({
-                text: text,
+                text: he.decode(text),
                 num_view: data['num_view'],
                 created_on: data['created_on'],
                 is_burn: data['is_burn'],
@@ -197,6 +200,7 @@ class Texts extends React.Component {
                 text: he.decode(data['error']),
             })
         }
+
         this.setState({
             isPasteRetrieved: true,
         })

@@ -38,11 +38,9 @@ class UserInput extends React.Component {
             open: false,
             urlId: null,
             buttonSendClick: false,
-            publicKey: null,
-            privateKey: null,
             burnChecked: false,
             textReceived: null,
-            urlIdGet: null,
+            //urlIdGet: null,
             buttonGetClick: false,
         }
 
@@ -50,7 +48,7 @@ class UserInput extends React.Component {
         this.encryptor = new E2EEncryptor()
 
         this.sendText = this.sendText.bind(this)
-        this.getPaste = this.getPaste.bind(this)
+        //this.getPaste = this.getPaste.bind(this)
     }
 
     async componentDidMount() {
@@ -120,11 +118,7 @@ class UserInput extends React.Component {
             return false
         }
 
-        if (typeof item === 'object' && item !== null) {
-            return true
-        }
-
-        return false
+        return typeof item === 'object' && item !== null
     }
 
     async sendMessageTo(payload) {
@@ -139,6 +133,7 @@ class UserInput extends React.Component {
     }
 
     // Should remove this method and switch to Texts instead...
+    /*
     getPaste() {
         if (!this.nym) {
             console.error('Could not send message because worker does not exist')
@@ -177,6 +172,7 @@ class UserInput extends React.Component {
             recipient,
         })
     }
+    */
 
     sendText() {
         if (this.state.text.length <= 100000 && this.state.text.length > 0) {
@@ -185,9 +181,9 @@ class UserInput extends React.Component {
             })
 
             // Encrypt text
-            const encryptedMsg = this.encryptor.encrypt(this.state.text)
+            const encrypted = this.encryptor.encrypt(this.state.text)
 
-            if (!encryptedMsg) {
+            if (!encrypted) {
                 console.error("Failed to encrypt message.")
                 return
             }
@@ -197,9 +193,10 @@ class UserInput extends React.Component {
                 event: 'newText',
                 sender: this.state.self_address,
                 data: {
-                    text: encryptedMsg,
+                    text: encrypted[0],
                     private: true,
                     burn: this.state.burnChecked,
+                    encParams: encrypted[1],
                 },
             }
             this.sendMessageTo(JSON.stringify(data))
@@ -311,6 +308,8 @@ class UserInput extends React.Component {
                         ) : (
                             ''
                         )}
+
+                        {/* Removed from now, will be migrated to the header, next to the "New paste link" and will redirect to Texts.js
                         <Box
                             sx={{
                                 gap: 4,
@@ -343,6 +342,7 @@ class UserInput extends React.Component {
                                 }
                             />
                         </Box>
+                        */}
 
                         {this.state.textReceived ? (
                             <ShowText data={this.state.textReceived} />
@@ -385,7 +385,7 @@ class UserInput extends React.Component {
                                 />
                             </Tooltip>
                         </Box>
-
+                        
                         <Textarea
                             sx={{}}
                             label="New paste"

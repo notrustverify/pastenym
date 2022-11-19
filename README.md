@@ -25,7 +25,7 @@ Your text is sent to a client which is connected to the Nym network and which st
 
 This system allows you to share information while respecting your privacy by protecting your data and metadata.
 
-On the side of No Trust Verify we only see an anonymous id when sending the text, and therefore impossible to know who is behind and from where the data was sent.
+On the side of No Trust Verify we only see an anonymous id when sending the text, and therefore impossible to know who is behind and from where the data was sent. Moreover, data is end-to-end encrypted: your browser generates a key used to encrypt the text, the key is placed in the URL you share with your friends and is used in their browser to decrypt the text received by the server.
 
 ### Schema
 
@@ -48,20 +48,21 @@ It uses [pipenv](https://pipenv.pypa.io/en/latest/install/)
 1. Go to `backend/`
 2. `pipenv shell` to start the python env
 3. `pipenv install` to install the dependancies from the PipFile
-4. `python -c "from db import *; create_tables()"` to init the DB
-5. `python main.py` to start the service
+4. `python main.py` to start the service. On the first run, it will create and initialize a local database at `backend/data/data.db`.
+
+## Contribute
+
+If you wish to contribute to the project, you will need to run the Nym client and Backend as explained in the Init part above AND run a local frontend.
 
 ### Frontend
-NodeJS and npm are used
+NodeJS (`v16.13.1`) and NPM (`v8.19.2`) are used for the frontend.
 
-* npm version `8.19.2`
-* nodejs version `v16.13.1`
+1. Go to the `frontend/` directory
+2. Create a `.env` file with the same keys are in `.env.example` with your values. The `REACT_APP_NYM_CLIENT_SERVER` value should match the address displayed by the backend.
+3. Run `npm install` and grab a cup of coffee
+4. Run `npm run start` and go to [http://localhost:8080](http://localhost:8080) in your favorite browser.
 
-1. Go to `js-example/`
-1. `npm install`
-2. `npm run start` open the browser and go to [http://localhost:8081](http://localhost:8080)
-
-### Docker
+## Docker
 
 1. Download the [custom nym-client](https://nym.notrustverify.ch/resources/nym-client). It just a recompiled version that can listen to `0.0.0.0`
 2. Init the nym-client and copy files 

@@ -24,11 +24,11 @@ NYM_HEADER_BINARY=b'\x00' # not used now, to investigate later
 class Serve:
 
     @staticmethod
-    def createPayload(recipient, reply_message,is_text=True):
+    def createPayload(recipient, reply_message, is_text=True):
         if is_text:
             metadata = (NYM_KIND_TEXT+NYM_HEADER_SIZE_TEXT).decode('utf-8')
         else:
-             # not used now, to investigate later 
+            # not used now, to investigate later 
             metadata = (NYM_KIND_BINARY+NYM_HEADER_BINARY).decode('utf-8')
 
         return json.dumps({
@@ -67,12 +67,10 @@ class Serve:
             print(f"Error ws: {message}")
             traceback.print_exc()
         except UnicodeDecodeError as e:
-            print("Unicode error, nothing to do about, {e}")
+            print("Unicode error, nothing to do about: {e}")
             return
         
         exit()
-       
-        
 
     def on_close(self, ws):
         print(f"Connection to nym-client closed")
@@ -81,35 +79,35 @@ class Serve:
         try:
             if self.firstRun:
                 self_address = json.loads(message)
-                print("our address is: {}".format(self_address["address"]))
+                print("Our address is: {}".format(self_address["address"]))
                 self.firstRun = False
                 return
+
             received_message = json.loads(message)
-           
             recipient = None
+
         except UnicodeDecodeError as e:
-            print("Unicode error, nothing to do about, {e}")
+            print("Unicode error, nothing to do about: {e}")
             return
 
         # we received the data in a json
         try:
             # received data with padding, remove them
-            received_data = json.loads(received_message['message'].replace("\x00",""))
+            received_data = json.loads(received_message['message'].replace("\x00", ""))
             
             recipient = received_data['sender']
             event = received_data['event']
             data = received_data['data']
-            print(received_message)
-        except (IndexError,KeyError,json.JSONDecodeError) as e:
+            print(f"-> Got {received_message}")
+
+        except (IndexError, KeyError, json.JSONDecodeError) as e:
             if recipient is not None:
-                err_msg = f"error parsing message, {e}"
+                err_msg = f"Error parsing message: {e}"
                 print(err_msg)
                 reply_message = err_msg
                 Serve.createPayload(recipient, reply_message)
             else:
-                print(f"no recipient found in message {received_message}")
-
-            
+                print(f"No recipient found in message {received_message}")
 
         reply = ""
     
@@ -121,29 +119,33 @@ class Serve:
             else:
                 reply = f"Error event {event} not found"
 
-            print(f"sending {reply} over the mix network. Cmd {event}")
+            print(f"-> Rcv {event} - answers {reply} over the mix network.")
             self.ws.send(reply)
         else:
-            print(f"no recipient found in message {received_message}")
+            print(f"No recipient found in message {received_message}")
 
     def newText(self, recipient, message):
 
-        if len(message) <= utils.PASTE_MAX_LENGTH:
-            urlId = self.pasteNym.newText(message)
+        reply_message = None
+        if "text" in message.keys():
+            if len(message.get('text')) <= utils.PASTE_MAX_LENGTH:
+                urlId = self.pasteNym.newText(message)
 
-            if urlId is not None:
-                try:
-                    if len(urlId) > 0:
-                        reply_message = urlId[0].get('url_id')
-                    else:
-                        reply_message = "error"
-                except IndexError as e:
-                    print(e)
-                    reply_message = "error"
+                if urlId is not None:
+                    try:
+                        if len(urlId) > 0:
+                            reply_message = urlId[0].get('url_id')
+                        else:
+                            reply_message = "Error"
+                    except IndexError as e:
+                        print(e)
+                        reply_message = "Error"
+                else:
+                    reply_message = "Error with text to share"
             else:
-                reply_message = f"Error with text to share"
+                reply_message = f"Error text too long. Max is {utils.PASTE_MAX_LENGTH}"
         else:
-            reply_message = f"Error text too long. Max is {utils.PASTE_MAX_LENGTH}"
+            reply_message = "Message has no text!"
 
         return Serve.createPayload(recipient, reply_message)
 

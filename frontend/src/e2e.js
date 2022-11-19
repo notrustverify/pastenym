@@ -15,12 +15,12 @@ class E2EEncryptor {
     this.#key = null
 
     if (!key) {
-      console.log("No key provided, will be generated...")
+      //console.log("No key provided, will be generated...")
       sjcl.random.startCollectors()
     }
     else {
       this.#key = key
-      console.log(`Using provided key: ${this.#key} (size: ${this.#key.length/8} bytes)`)
+      //console.log(`Provided key: ${this.#key} (size: ${this.#key.length/8} bytes)`)
     }
   }
 
@@ -30,26 +30,52 @@ class E2EEncryptor {
 
   #generateKey() {
     this.#key = this.#getRandomString(this.NB_BYTES)
-    console.log(`Key: ${this.#key} (size: ${this.#key.length/8} bytes)`)
+    //console.log(`Generated key: ${this.#key} (size: ${this.#key.length/8} bytes)`)
   }
 
   encrypt(plaintext) {
-    this.#generateKey()
-    console.log(`Plaintext: ${plaintext}`)
-    const ciphertext = sjcl.encrypt(this.#key, plaintext, {ks: 256})
-    console.log(`Ciphertext: ${ciphertext}`)
 
-    return sjcl.codec.base64.fromBits(sjcl.codec.utf8String.toBits(ciphertext))
+    // If no key, we generate it
+    if (!this.#key) {
+      this.#generateKey()
+    }
+
+    let ciphertext = null
+    try {
+      const strCiphertext = sjcl.encrypt(this.#key, plaintext, {ks: 256})
+      ciphertext = sjcl.json.decode(strCiphertext)
+    }
+    catch (e) {
+      console.error(`Error while encrypting ciphertext: ${e}`)
+      return null
+    }
+
+    // Re-encode some values
+    ciphertext["adata"] = sjcl.codec.base64.fromBits(ciphertext["adata"])
+    ciphertext["salt"] = sjcl.codec.base64.fromBits(ciphertext["salt"])
+    ciphertext["iv"] = sjcl.codec.base64.fromBits(ciphertext["iv"])
+    
+    const encryptedMessage = sjcl.codec.base64.fromBits(ciphertext["ct"])
+    delete ciphertext.ct
+    const encParams = ciphertext
+
+    return [encryptedMessage, encParams]
   }
 
-  decrypt(b64Ciphertext) {
-    console.log(`B64Ciphertext: ${b64Ciphertext}`)
-    const ciphertext = sjcl.codec.utf8String.fromBits(sjcl.codec.base64.toBits(b64Ciphertext))
-    console.log(`Ciphertext: ${ciphertext}`)
-    const plaintext = sjcl.decrypt(this.#key, ciphertext)
-    console.log(`Plaintext: ${plaintext}`)
+  decrypt(encryptedMessage, encParams) {
+    if (null == encParams) {
+      return encryptedMessage
+    }
 
-    return plaintext
+    let ciphertext = encParams
+    ciphertext['ct'] = sjcl.codec.base64.toBits(encryptedMessage)
+    ciphertext["adata"] = sjcl.codec.base64.toBits(ciphertext["adata"])
+    ciphertext["salt"] = sjcl.codec.base64.toBits(ciphertext["salt"])
+    ciphertext["iv"] = sjcl.codec.base64.toBits(ciphertext["iv"])
+
+    const strCiphertext = sjcl.json.encode(ciphertext)
+
+    return sjcl.decrypt(this.#key, strCiphertext)
   }
 
   getKey() {
