@@ -16,11 +16,10 @@ import SuccessUrlId from './components/SuccessUrlId'
 import Checkbox from '@mui/joy/Checkbox'
 import Tooltip from '@mui/joy/Tooltip'
 import ShowText from './components/ShowText'
-import Stack from '@mui/joy/Stack'
 import TextField from '@mui/joy/TextField'
 import ScreenSearchDesktopIcon from '@mui/icons-material/ScreenSearchDesktop'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import { createNymMixnetClient } from 'ntv-sdk'
+import {connectMixnet} from "./context/createConnection"
+
 
 let recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
 
@@ -50,17 +49,12 @@ class UserInput extends React.Component {
     }
 
     async componentDidMount() {
-        this.nym = await createNymMixnetClient()
-
-        const validatorApiUrl = 'https://validator.nymtech.net/api'
-        const preferredGatewayIdentityKey =
-            'E3mvZTHQCdBvhfr178Swx9g4QG3kkRUun7YnToLMcMbM'
-
-
+        this.nym = await connectMixnet()
+    
         this.nym.events.subscribeToTextMessageReceivedEvent((e) => {
             this.displayReceived(e.args.payload)
         })
-
+    
         this.nym.events.subscribeToConnected((e) => {
             if (e.args.address) {
                 this.setState({
@@ -68,14 +62,6 @@ class UserInput extends React.Component {
                     ready: true,
                 })
             }
-        })
-
-        // start the client and connect to a gateway
-        await this.nym.client.start({
-            clientId: 'pastenymClient',
-            validatorApiUrl,
-            preferredGatewayIdentityKey,
-            gatewayListener: "wss://gateway1.nymtech.net:443"
         })
     }
 

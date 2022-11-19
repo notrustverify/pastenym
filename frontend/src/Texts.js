@@ -22,7 +22,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import WarningIcon from '@mui/icons-material/Warning'
 import Alert from '@mui/joy/Alert'
 import IconButton from '@mui/joy/IconButton'
-import { createNymMixnetClient } from 'ntv-sdk'
+import {connectMixnet} from "./context/createConnection"
 
 
 const muiTheme = extendMuiTheme({
@@ -141,16 +141,12 @@ class Texts extends React.Component {
         this.sendMessageTo(message)
     }
     async componentDidMount() {
-        this.nym = await createNymMixnetClient()
-
-        const validatorApiUrl = 'https://validator.nymtech.net/api'
-        const preferredGatewayIdentityKey =
-            'E3mvZTHQCdBvhfr178Swx9g4QG3kkRUun7YnToLMcMbM'
-
+        this.nym = await connectMixnet()
+    
         this.nym.events.subscribeToTextMessageReceivedEvent((e) => {
             this.displayReceived(e.args.payload)
         })
-
+    
         this.nym.events.subscribeToConnected((e) => {
             if (e.args.address) {
                 this.setState({
@@ -158,14 +154,6 @@ class Texts extends React.Component {
                     ready: true,
                 })
             }
-        })
-
-        // start the client and connect to a gateway
-        await this.nym.client.start({
-            clientId: 'pastenymClient',
-            validatorApiUrl,
-            preferredGatewayIdentityKey,
-            gatewayListener: "wss://gateway1.nymtech.net:443"
         })
     }
 
