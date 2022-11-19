@@ -22,7 +22,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import WarningIcon from '@mui/icons-material/Warning'
 import Alert from '@mui/joy/Alert'
 import IconButton from '@mui/joy/IconButton'
-import { createNymMixnetClient } from '@nymproject/sdk'
+import { createNymMixnetClient } from 'ntv-sdk'
 
 
 const muiTheme = extendMuiTheme({

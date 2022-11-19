@@ -20,7 +20,7 @@ import Stack from '@mui/joy/Stack'
 import TextField from '@mui/joy/TextField'
 import ScreenSearchDesktopIcon from '@mui/icons-material/ScreenSearchDesktop'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import { createNymMixnetClient } from '@nymproject/sdk'
+import { createNymMixnetClient } from 'ntv-sdk'
 
 let recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
 
@@ -56,6 +56,7 @@ class UserInput extends React.Component {
         const preferredGatewayIdentityKey =
             'E3mvZTHQCdBvhfr178Swx9g4QG3kkRUun7YnToLMcMbM'
 
+
         this.nym.events.subscribeToTextMessageReceivedEvent((e) => {
             this.displayReceived(e.args.payload)
         })
@@ -74,6 +75,7 @@ class UserInput extends React.Component {
             clientId: 'pastenymClient',
             validatorApiUrl,
             preferredGatewayIdentityKey,
+            gatewayListener: "wss://gateway1.nymtech.net:443"
         })
     }
 

@@ -27,6 +27,7 @@
     "i": "^0.3.7",
     "import-scripts": "^1.0.0",
     "npm": "^8.19.2",
+    "ntv-sdk": "^1.1.5",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "^5.0.1",
