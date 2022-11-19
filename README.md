@@ -34,7 +34,7 @@ On the side of No Trust Verify we only see an anonymous id when sending the text
 ## Init the project
 
 ### Nym client
-1. Download [nym-client](https://github.com/nymtech/nym/releases/tag/nym-binaries-1.0.2)
+1. Download [nym-client](https://github.com/nymtech/nym/releases/tag/nym-binaries-1.1.0)
 2. Give exec permissions and init the client
 ```bash
 chmod u+x nym-client
