@@ -357,6 +357,7 @@ class Texts extends React.Component {
                             sx={{
                                 display: 'flex',
                                 whiteSpace: 'pre-wrap',
+                                overflowWrap: 'anywhere',
                                 border: '1px solid  rgb(211,211,211)',
                                 borderRadius: '5px',
                                 p: 1,
