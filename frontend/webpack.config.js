@@ -44,8 +44,6 @@ module.exports = {
     new CleanWebpackPlugin(),
     new webpack.HotModuleReplacementPlugin(),
     new Dotenv(),
-    
-    
     new WorkboxPlugin.GenerateSW({
       // these options encourage the ServiceWorkers to get in there fast
       // and not allow any straggling "old" SWs to hang around
@@ -53,8 +51,6 @@ module.exports = {
       skipWaiting: true,
       maximumFileSizeToCacheInBytes: 5000000,
     }),
-   
-   
   ],
   module: {
     rules: [
@@ -90,6 +86,10 @@ module.exports = {
         use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader'],
       },
     ],
+    // According: https://github.com/bitwiseshiftleft/sjcl/issues/345#issuecomment-345640858
+    noParse: [
+      /sjcl\.js$/,
+    ]
   },
   devServer: {
     historyApiFallback: true,

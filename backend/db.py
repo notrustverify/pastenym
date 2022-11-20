@@ -30,28 +30,28 @@ class BaseModel(Model):
         try:
             with database.atomic():
                 return Text.get_or_none(Text.url_id == id)
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExists) as e:
             logHandler.exception(e)
             return False
         finally:
             self.close()
 
-    def insertText(self, text, url_id,private=True,burn=False):
+    def insertText(self, text, url_id, enc_params_b64, private=True, burn=False):
         self.connect()
 
         try:
             with database.atomic():
-                idInsert = Text.insert(text=text, url_id=url_id,is_private=private,is_burn=burn).execute()
+                idInsert = Text.insert(
+                    text=text,
+                    encryption_params_b64=enc_params_b64,
+                    url_id=url_id,
+                    is_private=private,
+                    is_burn=burn
+                ).execute()
 
                 return list(Text.select().where(Text.id == idInsert).dicts())
 
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -65,26 +65,31 @@ class BaseModel(Model):
 
                 Text.update(num_view=Text.num_view+1).where(Text.url_id == url_id).execute()
 
-                data = Text.select(Text.id,Text.text,Text.num_view,Text.created_on,Text.is_burn).where(Text.url_id == url_id).dicts()
+                data = Text.select( Text.id,
+                                    Text.text,
+                                    Text.num_view,
+                                    Text.created_on,
+                                    Text.is_burn,
+                                    Text.encryption_params_b64
+                                    ).where(Text.url_id == url_id).dicts()
 
-                if len(data) > 0:
-                    try:
-                        if data[0].get('is_burn'):
-                            print(f"text id {data[0]['id']} is deleted")
-                            Text.delete().where(Text.id == data[0]['id']).execute()
-                    except (KeyError,IndexError) as e:
-                        print(f"error with key {e}")
+                if len(data) == 1:
+                    retreivedText = data[0]
+                    if retreivedText.get('is_burn'):
+                        try:
+                            Text.delete().where(Text.id == retreivedText['id']).execute()
+                            print(f"Deleted text with id: {retreivedText['id']}")
 
-                    # remove text id since it's not a useful informations
-                    del data[0]['id']
-                    return data[0]
+                        except (KeyError, IndexError) as e:
+                            print(f"Error while deleting text {e}")
+
+                    # Remove text id since it's not a useful informations
+                    del retreivedText['id']
+                    return retreivedText
 
                 return None
 
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -97,11 +102,7 @@ class BaseModel(Model):
             with database.atomic():
                 return None
         
-        except IntegrityError as e:
-            print(e)
-            print(traceback.format_exc())
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             print(e)
             print(traceback.format_exc())
             return False
@@ -120,11 +121,7 @@ class BaseModel(Model):
                                                   update={'ip': ip, 'http_api_port': port, "in_check_set": True,
                                                           'updated_on': datetime.utcnow()}).execute()
 
-        except IntegrityError as e:
-            print(e)
-            print(traceback.format_exc())
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             print(e)
             print(traceback.format_exc())
             return False
@@ -145,11 +142,7 @@ class BaseModel(Model):
                                                           "in_active_set": True,
                                                           "layer": data['layer'],
                                                           'updated_on': datetime.utcnow()}).execute()
-        except IntegrityError as e:
-            print(e)
-            print(traceback.format_exc())
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             print(e)
             print(traceback.format_exc())
             return False
@@ -163,10 +156,7 @@ class BaseModel(Model):
             with database.atomic():
                 Mixnodes.update(in_active_set=False, updated_on=datetime.utcnow()).where(
                     Mixnodes.in_active_set == True).execute()
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -179,10 +169,7 @@ class BaseModel(Model):
             with database.atomic():
                 Mixnodes.update(in_check_set=False, updated_on=datetime.utcnow()).where(
                     Mixnodes.in_check_set == True).execute()
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -195,10 +182,7 @@ class BaseModel(Model):
             with database.atomic():
                 Mixnodes.update(packets_mixed=num_packets, updated_on=datetime.utcnow()).where(
                     Mixnodes.ip == ip).execute()
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -210,10 +194,7 @@ class BaseModel(Model):
         try:
             with database.atomic():
                 data = [mixnode for mixnode in Mixnodes.select().where(Mixnodes.in_check_set == True).dicts()]
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -232,10 +213,7 @@ class BaseModel(Model):
                 else:
                     data = list(Mixnodes.select().where(Mixnodes.in_active_set == True).dicts())
 
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -250,10 +228,7 @@ class BaseModel(Model):
             with database.atomic():
                 data = list(
                     Mixnodes.select().where((Mixnodes.in_check_set == True) & (Mixnodes.packets_mixed <= 0)).dicts())
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -268,10 +243,8 @@ class BaseModel(Model):
             with database.atomic():
                 State.insert(mixnet=mixnet, validator_api=validator, rpc=rpc, epoch=epochState,
                              epochId=epochId).execute()
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -284,10 +257,7 @@ class BaseModel(Model):
             with database.atomic():
                 return list(State.select().order_by(State.created_on.desc()).limit(1).dicts())
 
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -300,10 +270,7 @@ class BaseModel(Model):
             with database.atomic():
                 return [s for s in State.select(State.created_on).order_by(State.created_on.asc()).limit(1).dicts()][0]
 
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -322,10 +289,7 @@ class BaseModel(Model):
 
                 return lastCrash[0]
 
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -337,10 +301,7 @@ class BaseModel(Model):
             with database.atomic():
                 return [s for s in PacketsMixed.select().dicts()][0]
 
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -351,10 +312,7 @@ class BaseModel(Model):
         try:
             with database.atomic():
                 return list(PacketsMixed.select().order_by(PacketsMixed.created_on.desc()).limit(numResults).dicts())
-        except IntegrityError as e:
-            logHandler.exception(e)
-            return False
-        except DoesNotExist as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
@@ -367,10 +325,10 @@ class Text(BaseModel):
         db_table = 'texts'
 
     text = TextField()
-    url_id = TextField(unique=True)
+    url_id = TextField(index=True)  # Setting url_id as index allows faster operations
     expiration_time = TimestampField(null=True)
     author = TextField(null=True)
-    password_protected = TextField(null=True)
+    encryption_params_b64 = TextField(null=True)    # If not null, means that 'text' field is encrypted with password
     num_view = IntegerField(default=0)
     is_private = BooleanField(null=True)
     is_burn = BooleanField(null=True) # burn after reading paste

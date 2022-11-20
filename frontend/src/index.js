@@ -1,11 +1,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import './index.css'
-import UserInput from './UserInput'
-import Texts from './Texts'
-import reportWebVitals from './reportWebVitals'
 import { Routes, Route, HashRouter } from 'react-router-dom'
 
+//import reportWebVitals from './reportWebVitals'
+import UserInput from './UserInput'
+import Texts from './Texts'
+import './index.css'
 
 if (module.hot) module.hot.accept()
 
@@ -20,8 +20,7 @@ export default function App() {
         <HashRouter>
             <Routes>
                 <Route path="/" element={<UserInput />} />
-                <Route path="/protec" element={<UserInput />} />
-                <Route path=":urlId" element={<Texts />} />
+                <Route path="/:urlId" element={<Texts />} />
             </Routes>
         </HashRouter>
     )

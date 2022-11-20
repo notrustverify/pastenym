@@ -1,10 +1,7 @@
 import * as React from 'react'
+import { Link as RouterLink } from 'react-router-dom'
 import Breadcrumbs from '@mui/joy/Breadcrumbs'
 import Link from '@mui/joy/Link'
-import { Link as RouterLink } from 'react-router-dom'
-import UserInput from './UserInput'
-
-import HttpDetection from './components/HttpDetection'
 import Box from '@mui/joy/Box'
 import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
@@ -15,12 +12,15 @@ import Button from '@mui/material/Button'
 import { deepmerge } from '@mui/utils'
 import { experimental_extendTheme as extendMuiTheme } from '@mui/material/styles'
 import colors from '@mui/joy/colors'
-import Disclaimer from './components/Disclaimer'
 import {
     extendTheme as extendJoyTheme,
     CssVarsProvider,
     useColorScheme,
 } from '@mui/joy/styles'
+
+import HttpDetection from './components/HttpDetection'
+import Disclaimer from './components/Disclaimer'
+import UserInput from './UserInput'
 
 const muiTheme = extendMuiTheme({
     // This is required to point to `var(--joy-*)` because we are using `CssVarsProvider` from Joy UI.

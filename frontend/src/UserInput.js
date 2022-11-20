@@ -5,19 +5,21 @@ import Sheet from '@mui/joy/Sheet'
 import Typography from '@mui/joy/Typography'
 import Button from '@mui/joy/Button'
 import Textarea from '@mui/joy/Textarea'
-import Header from './Header'
-import Footer from './Footer'
 import Box from '@mui/joy/Box'
 import SendIcon from '@mui/icons-material/Send'
 import CircularProgress from '@mui/joy/CircularProgress'
+import Checkbox from '@mui/joy/Checkbox'
+import Tooltip from '@mui/joy/Tooltip'
+import TextField from '@mui/joy/TextField'
+import ScreenSearchDesktopIcon from '@mui/icons-material/ScreenSearchDesktop'
+
+import Header from './Header'
+import Footer from './Footer'
+import E2EEncryptor from './e2e'
+import ShowText from './components/ShowText'
 import { withRouter } from './components/withRouter'
 import ErrorModal from './components/ErrorModal'
 import SuccessUrlId from './components/SuccessUrlId'
-import Checkbox from '@mui/joy/Checkbox'
-import Tooltip from '@mui/joy/Tooltip'
-import ShowText from './components/ShowText'
-import TextField from '@mui/joy/TextField'
-import ScreenSearchDesktopIcon from '@mui/icons-material/ScreenSearchDesktop'
 import {connectMixnet} from "./context/createConnection"
 
 
@@ -36,16 +38,17 @@ class UserInput extends React.Component {
             open: false,
             urlId: null,
             buttonSendClick: false,
-            publicKey: null,
-            privateKey: null,
             burnChecked: false,
             textReceived: null,
-            urlIdGet: null,
+            //urlIdGet: null,
             buttonGetClick: false,
         }
 
+        // Instanciating a new encryptor will generate new key by default
+        this.encryptor = new E2EEncryptor()
+
         this.sendText = this.sendText.bind(this)
-        this.getPaste = this.getPaste.bind(this)
+        //this.getPaste = this.getPaste.bind(this)
     }
 
     async componentDidMount() {
@@ -59,7 +62,6 @@ class UserInput extends React.Component {
             if (e.args.address) {
                 this.setState({
                     self_address: e.args.address,
-                    ready: true,
                 })
             }
         })
@@ -104,8 +106,6 @@ class UserInput extends React.Component {
                     })
                 }
             }
-        } else {
-            console.log(content)
         }
     }
 
@@ -118,35 +118,25 @@ class UserInput extends React.Component {
             return false
         }
 
-        if (typeof item === 'object' && item !== null) {
-            return true
-        }
-
-        return false
+        return typeof item === 'object' && item !== null
     }
 
     async sendMessageTo(payload) {
         if (!this.nym) {
-            console.error(
-                'Could not send message because worker does not exist'
-            )
+            console.error('Could not send message because worker does not exist')
             return
         }
-        console.log({
-            payload,
-            recipient,
-        })
-        await this.nym.client.sendMessage({
-            payload,
-            recipient,
-        })
+
+        console.log({ payload, recipient })
+
+        await this.nym.client.sendMessage({ payload, recipient })
     }
 
+    // Should remove this method and switch to Texts instead...
+    /*
     getPaste() {
         if (!this.nym) {
-            console.error(
-                'Could not send message because worker does not exist'
-            )
+            console.error('Could not send message because worker does not exist')
             return
         }
 
@@ -155,23 +145,25 @@ class UserInput extends React.Component {
             buttonGetClick: true,
         })
 
-        let urlId = ''
+        let urlId = null == this.state.urlIdGet ? "" : this.state.urlIdGet
 
-        //keep only urlid part, remove http...
-        if (this.state.urlIdGet.split('/#/').length > 1 || this.state.urlIdGet.split('/').length > 1 )
-
+        // Keep only urlid part, remove http...
+        if (this.state.urlIdGet.split('/#/').length > 1) {
             urlId = this.state.urlIdGet.split('/').reverse()[0]
-        else urlId = this.state.urlIdGet
+        }
 
-        //remove key
-        if (urlId.split('?').length > 1) urlId.split('?')[0]
+        const items = urlId.split('&')
+
+        // Remove key
+        if (items.length > 1) {
+            urlId = items[0]
+            key = items[1]
+        }
 
         const data = {
             event: 'getText',
             sender: this.state.self_address,
-            data: {
-                urlId: urlId,
-            },
+            data: { urlId: urlId },
         }
         const message = JSON.stringify(data)
 
@@ -180,6 +172,7 @@ class UserInput extends React.Component {
             recipient,
         })
     }
+    */
 
     sendText() {
         if (this.state.text.length <= 100000 && this.state.text.length > 0) {
@@ -187,14 +180,23 @@ class UserInput extends React.Component {
                 buttonSendClick: true,
             })
 
+            // Encrypt text
+            const encrypted = this.encryptor.encrypt(this.state.text)
+
+            if (!encrypted) {
+                console.error("Failed to encrypt message.")
+                return
+            }
+
             // As soon SURB will be implemented in wasm client, we will use it
             const data = {
                 event: 'newText',
                 sender: this.state.self_address,
                 data: {
-                    text: this.state.text,
+                    text: encrypted[0],
                     private: true,
                     burn: this.state.burnChecked,
+                    encParams: encrypted[1],
                 },
             }
             this.sendMessageTo(JSON.stringify(data))
@@ -296,7 +298,7 @@ class UserInput extends React.Component {
                         {
                             // use buttonClick to reload the message
                             this.state.urlId && !this.state.buttonSendClick ? (
-                                <SuccessUrlId urlId={this.state.urlId} />
+                                <SuccessUrlId urlId={this.state.urlId} encKey={this.encryptor.getKey()} />
                             ) : (
                                 ''
                             )
@@ -306,6 +308,8 @@ class UserInput extends React.Component {
                         ) : (
                             ''
                         )}
+
+                        {/* Removed from now, will be migrated to the header, next to the "New paste link" and will redirect to Texts.js
                         <Box
                             sx={{
                                 gap: 4,
@@ -338,6 +342,7 @@ class UserInput extends React.Component {
                                 }
                             />
                         </Box>
+                        */}
 
                         {this.state.textReceived ? (
                             <ShowText data={this.state.textReceived} />
@@ -380,7 +385,7 @@ class UserInput extends React.Component {
                                 />
                             </Tooltip>
                         </Box>
-
+                        
                         <Textarea
                             sx={{}}
                             label="New paste"

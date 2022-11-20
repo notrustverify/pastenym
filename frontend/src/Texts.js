@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useParams } from 'react-router-dom'
 import {
     extendTheme as extendJoyTheme,
     CssVarsProvider,
@@ -6,9 +7,6 @@ import {
 } from '@mui/joy/styles'
 import Sheet from '@mui/joy/Sheet'
 import Typography from '@mui/joy/Typography'
-import Header from './Header'
-import Footer from './Footer'
-import { useParams } from 'react-router-dom'
 import he from 'he'
 import CircularProgress from '@mui/joy/CircularProgress'
 import Divider from '@mui/joy/Divider'
@@ -17,11 +15,15 @@ import { experimental_extendTheme as extendMuiTheme } from '@mui/material/styles
 import Box from '@mui/material/Box'
 import colors from '@mui/joy/colors'
 import Skeleton from '@mui/material/Skeleton'
-import TextStats from './components/TextStats'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import WarningIcon from '@mui/icons-material/Warning'
 import Alert from '@mui/joy/Alert'
 import IconButton from '@mui/joy/IconButton'
+
+import Header from './Header'
+import Footer from './Footer'
+import E2EEncryptor from './e2e'
+import TextStats from './components/TextStats'
 import {connectMixnet} from "./context/createConnection"
 
 
@@ -107,25 +109,35 @@ class Texts extends React.Component {
         super(props)
         this.nym = null
 
+        const items = this.props.params.urlId.replace('#/', '').replace('#', '').split("&").map(l => l.split('='))
+        const urlId = items[0][0]
+        this.params = {}
+        for (let elt of items) {
+            let [key, val] = elt
+            this.params[key] = val
+        }
+
         this.state = {
             self_address: null,
             text: null,
             num_view: null,
-            urlId: this.props.params.urlId,
+            urlId: urlId,
+            isKeyProvided: this.params.hasOwnProperty('key') && this.params.key.length > 1,
             created_on: null,
             ready: false,
             isPasteRetrieved: false,
         }
 
+        if (this.state.isKeyProvided) {
+            this.encryptor = new E2EEncryptor(this.params.key)
+        }
 
         this.getPaste = this.getPaste.bind(this)
-        }
+    }
 
     getPaste() {
         if (!this.nym) {
-            console.error(
-                'Could not send message because worker does not exist'
-            )
+            console.error('Could not send message because worker does not exist')
             return
         }
 
@@ -140,6 +152,7 @@ class Texts extends React.Component {
 
         this.sendMessageTo(message)
     }
+
     async componentDidMount() {
         this.nym = await connectMixnet()
     
@@ -164,8 +177,20 @@ class Texts extends React.Component {
         const replySurb = message.replySurb
 
         if (!data.hasOwnProperty('error')) {
+            let text = he.decode(data['text'])
+
+            // Decrypt if text is encrypted
+            if (data.hasOwnProperty('encParams') && undefined != data['encParams']) {
+                if (!this.state.isKeyProvided) {
+                    console.error("Text seems to be encrypted but no key is provided. Displaying encrypted text")
+                } else {
+                    const encParams = data['encParams']
+                    text = this.encryptor.decrypt(text, encParams)
+                }
+            }
+
             this.setState({
-                text: he.decode(data['text']),
+                text: he.decode(text),
                 num_view: data['num_view'],
                 created_on: data['created_on'],
                 is_burn: data['is_burn'],
@@ -175,6 +200,7 @@ class Texts extends React.Component {
                 text: he.decode(data['error']),
             })
         }
+
         this.setState({
             isPasteRetrieved: true,
         })
@@ -184,9 +210,7 @@ class Texts extends React.Component {
 
     async sendMessageTo(payload) {
         if (!this.nym) {
-            console.error(
-                'Could not send message because worker does not exist'
-            )
+            console.error('Could not send message because worker does not exist')
             return
         }
   

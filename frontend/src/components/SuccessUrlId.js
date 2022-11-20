@@ -1,9 +1,10 @@
+import * as React from 'react'
+
 import InfoIcon from '@mui/icons-material/Info'
 import WarningIcon from '@mui/icons-material/Warning'
 import ReportIcon from '@mui/icons-material/Report'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
-import * as React from 'react'
 import Box from '@mui/joy/Box'
 import Alert from '@mui/joy/Alert'
 import IconButton from '@mui/joy/IconButton'
@@ -22,7 +23,7 @@ class SuccessUrlId extends React.Component {
         super(props)
 
         this.state = {
-            url: SERVER_NAME + '/#/' + this.props.urlId,
+            url: SERVER_NAME + '/#/' + this.props.urlId + (this.props.encKey ? '&key=' + this.props.encKey : ''),
             urlId: this.props.urlId,
             open: false,
             textButton: 'Copy to clipboard',
@@ -65,7 +66,6 @@ class SuccessUrlId extends React.Component {
         }
     }
 
-    // {SERVER_NAME + '/' + this.props.urlId}
     render() {
         return (
             <Alert
