@@ -95,9 +95,11 @@ class PasteNym:
                 if data.get('urlId') and type(data.get('urlId')) == str:
                     urlId = data.get('urlId').strip()
                     retreivedText = self.db.getTextByUrlId(urlId)
-                    retreivedText["encParams"] = json.loads(base64.b64decode(retreivedText["encryption_params_b64"]).decode("utf-8"))
-                    del retreivedText["encryption_params_b64"]
-                    return retreivedText
+                    
+                    if retreivedText:
+                        retreivedText["encParams"] = json.loads(base64.b64decode(retreivedText["encryption_params_b64"]).decode("utf-8"))
+                        del retreivedText["encryption_params_b64"]
+                        return retreivedText
 
             except KeyError as e :
                 print(f"Key not found in getTextId data: {e}")
