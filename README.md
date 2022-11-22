@@ -7,7 +7,7 @@ The main goal is to offer a solution for sharing text with [Nym](https://nymtech
 to offer full anonymity, even on metadata level
 
 #### Demo
-Get shared text: [http://pastenym.ch/zXruebin](http://pastenym.ch/zXruebin)
+Get shared text: [https://pastenym.ch/#/cuc0yBM7&key=331362fb93d7d7730ae182660edba661](https://pastenym.ch/#/cuc0yBM7&key=331362fb93d7d7730ae182660edba661)
 
 Share a text: [http://pastenym.ch/](http://pastenym.ch/)
 
