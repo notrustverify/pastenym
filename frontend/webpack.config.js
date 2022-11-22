@@ -23,7 +23,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       title: 'Pastenym',
-      description: "Anonymous share text service powered by Nym mixnet",
+      description: "Share text anonymously",
       public_url: "https://pastenym.ch",
       template: path.resolve(__dirname, './src/index.html'), // template file      
       filename: 'index.html', // output file  
