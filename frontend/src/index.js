@@ -5,6 +5,7 @@ import { Routes, Route, HashRouter } from 'react-router-dom'
 //import reportWebVitals from './reportWebVitals'
 import UserInput from './UserInput'
 import Texts from './Texts'
+import About from './About'
 import './index.css'
 
 if (module.hot) module.hot.accept()
@@ -20,6 +21,7 @@ export default function App() {
         <HashRouter>
             <Routes>
                 <Route path="/" element={<UserInput />} />
+                <Route path="/about" element={<About />} />
                 <Route path="/:urlId" element={<Texts />} />
             </Routes>
         </HashRouter>
@@ -46,3 +48,4 @@ if ('serviceWorker' in navigator) {
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 //reportWebVitals(console.log);
+
