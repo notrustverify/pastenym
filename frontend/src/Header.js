@@ -102,7 +102,15 @@ class Header extends React.Component {
                     <Link component={RouterLink} to="/">
                         <Button size="small">New paste</Button>
                     </Link>
-
+                    <Typography color="inherit" size="small" level="body1">
+                        /
+                    </Typography>
+                    <Link component={RouterLink} to="/about">
+                        <Button size="small">About</Button>
+                    </Link>
+                    <Typography color="inherit" size="small" level="body1">
+                        /
+                    </Typography>
                     <Typography
                         component="h2"
                         variant="h5"
