@@ -14,11 +14,11 @@ self_address_request = json.dumps({
 CMD_NEW_TEXT = "newText"
 CMD_GET_TEXT = "getText"
 
-NYM_KIND_TEXT=b'\x00'*8 #uint8
-NYM_KIND_BINARY=b'\x01'
+NYM_KIND_TEXT = b'\x00'*8  # uint8
+NYM_KIND_BINARY = b'\x01'
 
-NYM_HEADER_SIZE_TEXT=b'\x00' #set to 0 if it's a text
-NYM_HEADER_BINARY=b'\x00' # not used now, to investigate later
+NYM_HEADER_SIZE_TEXT = b'\x00'  # set to 0 if it's a text
+NYM_HEADER_BINARY = b'\x00'  # not used now, to investigate later
 
 
 class Serve:
@@ -28,12 +28,13 @@ class Serve:
         if is_text:
             metadata = (NYM_KIND_TEXT+NYM_HEADER_SIZE_TEXT).decode('utf-8')
         else:
-            # not used now, to investigate later 
+            # not used now, to investigate later
             metadata = (NYM_KIND_BINARY+NYM_HEADER_BINARY).decode('utf-8')
 
         return json.dumps({
             "type": "send",
-            "message": metadata+reply_message, # append \x00 because of "kind" message is non binary and equal 0 + 1 bytes because no header are set
+            # append \x00 because of "kind" message is non binary and equal 0 + 1 bytes because no header are set
+            "message": metadata+reply_message,
             "recipient": recipient,
             "withReplySurb": False
             # "replySurb": reply_surb
@@ -55,9 +56,18 @@ class Serve:
                                          on_open=lambda ws:     self.on_open(ws))
 
         # Set dispatcher to automatic reconnection
-        self.ws.run_forever(dispatcher=rel)
+
+        self.ws.run_forever(dispatcher=rel, ping_interval=30,
+                            ping_timeout=10, ping_payload=self_address_request)
+
         rel.signal(2, rel.abort)  # Keyboard Interrupt
         rel.dispatch()
+
+    def on_ping(self, ws):
+        pass
+
+    def on_pong(self, ws):
+        pass
 
     def on_open(self, ws):
         self.ws.send(self_address_request)
@@ -69,10 +79,12 @@ class Serve:
         except UnicodeDecodeError as e:
             print("Unicode error, nothing to do about: {e}")
             return
-        
-        exit()
+        finally:
+            self.ws.close()
+            exit(1)
 
     def on_close(self, ws):
+
         print(f"Connection to nym-client closed")
 
     def on_message(self, ws, message):
@@ -93,8 +105,9 @@ class Serve:
         # we received the data in a json
         try:
             # received data with padding, remove them
-            received_data = json.loads(received_message['message'].replace("\x00", ""))
-            
+            received_data = json.loads(
+                received_message['message'].replace("\x00", ""))
+
             recipient = received_data['sender']
             event = received_data['event']
             data = received_data['data']
@@ -110,7 +123,7 @@ class Serve:
                 print(f"No recipient found in message {received_message}")
 
         reply = ""
-    
+
         if recipient is not None:
             if event == CMD_NEW_TEXT:
                 reply = self.newText(recipient, data)
