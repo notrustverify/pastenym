@@ -32,6 +32,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'))
 root.render(<App />)
 
 //to create pwa application, uncomment
+/*
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker
@@ -49,3 +50,4 @@ if ('serviceWorker' in navigator) {
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 //reportWebVitals(console.log);
 
+*/

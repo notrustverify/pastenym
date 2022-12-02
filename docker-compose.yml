@@ -15,11 +15,13 @@ services:
     env_file: env.docker
     volumes:
       - ./backend/data/data.db:/data/data.db
-    depends_on:
-      - nym-client
+
   nym-client:
     build:
       context: ./nym-client
     restart: unless-stopped
+    depends_on:
+      - pastenym-backend
+
     volumes:
        - ./nym-client/nym-data/:/home/user/.nym/

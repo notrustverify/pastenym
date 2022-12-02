@@ -6,6 +6,7 @@ import utils
 import rel
 from datetime import datetime
 import traceback
+from PIL import Image
 
 self_address_request = json.dumps({
     "type": "selfAddress"
@@ -14,11 +15,11 @@ self_address_request = json.dumps({
 CMD_NEW_TEXT = "newText"
 CMD_GET_TEXT = "getText"
 
-NYM_KIND_TEXT = b'\x00'*8  # uint8
+NYM_KIND_TEXT = b'\x00'  # uint8
 NYM_KIND_BINARY = b'\x01'
 
-NYM_HEADER_SIZE_TEXT = b'\x00'  # set to 0 if it's a text
-NYM_HEADER_BINARY = b'\x00'  # not used now, to investigate later
+NYM_HEADER_SIZE_TEXT = b'\x00'*8  # set to 0 if it's a text
+NYM_HEADER_BINARY = b'\x00'*8  # not used now, to investigate later
 
 
 class Serve:
@@ -62,6 +63,7 @@ class Serve:
 
         rel.signal(2, rel.abort)  # Keyboard Interrupt
         rel.dispatch()
+        self.ws.close()
 
     def on_ping(self, ws):
         pass
@@ -102,12 +104,35 @@ class Serve:
             print("Unicode error, nothing to do about: {e}")
             return
 
+        kindReceived = bytes(received_message['message'][0:8], 'utf-8')[0:1]
+        
         # we received the data in a json
         try:
-            # received data with padding, remove them
-            received_data = json.loads(
-                received_message['message'].replace("\x00", ""))
+            # received data with padding, start at the 9th byte
+            payload = bytes(received_message['message'][9:], 'utf-8').decode()
+            
+            if kindReceived == NYM_KIND_TEXT:
+                pass
+            elif kindReceived == NYM_KIND_BINARY:
+                extractData = payload.split("#####")
 
+                if len(extractData) > 0 :
+                    #no header
+                    if len(extractData[0]) < 0:
+                        data = extractData[1]
+                        fileData = extractData[2]
+                        headers = None
+                    else:
+                        headers = extractData[0]
+                        data = extractData[1]
+                        fileData = extractData[2]
+                        
+                print(data,extractData,fileData)
+                ff = open('test.jpg',"wb")
+                ff.write(bytes(fileData,'utf-8'))
+                ff.close()
+                received_data = json.loads(data)
+            
             recipient = received_data['sender']
             event = received_data['event']
             data = received_data['data']

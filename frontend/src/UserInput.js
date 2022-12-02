@@ -10,9 +10,7 @@ import SendIcon from '@mui/icons-material/Send'
 import CircularProgress from '@mui/joy/CircularProgress'
 import Checkbox from '@mui/joy/Checkbox'
 import Tooltip from '@mui/joy/Tooltip'
-import TextField from '@mui/joy/TextField'
-import ScreenSearchDesktopIcon from '@mui/icons-material/ScreenSearchDesktop'
-
+import UploadFileIcon from '@mui/icons-material/UploadFile'
 import Header from './Header'
 import Footer from './Footer'
 import E2EEncryptor from './e2e'
@@ -20,8 +18,7 @@ import ShowText from './components/ShowText'
 import { withRouter } from './components/withRouter'
 import ErrorModal from './components/ErrorModal'
 import SuccessUrlId from './components/SuccessUrlId'
-import {connectMixnet} from "./context/createConnection"
-
+import { connectMixnet } from './context/createConnection'
 
 let recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
 
@@ -42,6 +39,8 @@ class UserInput extends React.Component {
             textReceived: null,
             //urlIdGet: null,
             buttonGetClick: false,
+            files: null,
+            isFileAttached: false,
         }
 
         // Instanciating a new encryptor will generate new key by default
@@ -49,15 +48,17 @@ class UserInput extends React.Component {
 
         this.sendText = this.sendText.bind(this)
         //this.getPaste = this.getPaste.bind(this)
+        this.handleFileUploadError = this.handleFileUploadError.bind(this)
+        this.handleFilesChange = this.handleFilesChange.bind(this)
     }
 
     async componentDidMount() {
         this.nym = await connectMixnet()
-    
+
         this.nym.events.subscribeToTextMessageReceivedEvent((e) => {
             this.displayReceived(e.args.payload)
         })
-    
+
         this.nym.events.subscribeToConnected((e) => {
             if (e.args.address) {
                 this.setState({
@@ -68,6 +69,19 @@ class UserInput extends React.Component {
     }
 
     componentWillUnmount() {}
+
+    handleFileUploadError = (error) => {
+        // Do something...
+    }
+
+    handleFilesChange(files) {
+        // handle validations
+        console.log(files.target.files)
+
+        this.setState({
+            files: [...files.target.files],
+        })
+    }
 
     displayReceived(message) {
         const content = message
@@ -121,9 +135,55 @@ class UserInput extends React.Component {
         return typeof item === 'object' && item !== null
     }
 
+    mergeUInt8Arrays(a1, a2) {
+        // sum of individual array lengths
+        var mergedArray = new Uint8Array(a1.length + a2.length);
+        mergedArray.set(a1);
+        mergedArray.set(a2, a1.length);
+        return mergedArray;
+      }
+
+    async sendBinaryMessageTo(data,payload) {
+        if (!this.nym) {
+            console.error(
+                'Could not send message because worker does not exist'
+            )
+            return
+        }
+        let fileArray = undefined
+        let headers = undefined
+
+        data = "#####"+data+"#####"
+        const dataArray =  Uint8Array.from(data.split("").map(x => x.charCodeAt()))
+        console.log(payload)
+        await Promise.all(
+            payload.map(async (f) => {
+                const buffer = await f.arrayBuffer()
+                fileArray = new Uint8Array(buffer)
+                headers = { filename: f.name, mimeType: f.type }
+            }))
+                //headers have to be defined maybe
+                //headers: { filename: f.name, mimeType: f.type }
+                console.log(fileArray)
+                console.log(dataArray)
+                data.file=fileArray
+                try {
+                    await this.nym.client.sendBinaryMessage({
+                        payload: this.mergeUInt8Arrays(dataArray,fileArray),
+                        recipient: recipient,
+                        headers: JSON.stringify(headers)
+                    })
+                } catch (e) {
+                    console.log('Failed to send file', e)
+                }
+                return undefined
+    }
+
     async sendMessageTo(payload) {
         if (!this.nym) {
-            console.error('Could not send message because worker does not exist')
+            console.error(
+                'Could not send message because worker does not exist'
+            )
             return
         }
 
@@ -175,7 +235,10 @@ class UserInput extends React.Component {
     */
 
     sendText() {
-        if (this.state.text.length <= 100000 && this.state.text.length > 0) {
+        if (
+            (this.state.text.length <= 100000 && this.state.text.length > 0) ||
+            this.state.files.length > 0
+        ) {
             this.setState({
                 buttonSendClick: true,
             })
@@ -184,11 +247,12 @@ class UserInput extends React.Component {
             const encrypted = this.encryptor.encrypt(this.state.text)
 
             if (!encrypted) {
-                console.error("Failed to encrypt message.")
+                console.error('Failed to encrypt message.')
                 return
             }
 
             // As soon SURB will be implemented in wasm client, we will use it
+
             const data = {
                 event: 'newText',
                 sender: this.state.self_address,
@@ -199,7 +263,11 @@ class UserInput extends React.Component {
                     encParams: encrypted[1],
                 },
             }
-            this.sendMessageTo(JSON.stringify(data))
+
+            /*if (this.state.text.length > 0)
+                this.sendMessageTo(JSON.stringify(data))*/
+            if (this.state.files.length > 0)
+                this.sendBinaryMessageTo(JSON.stringify(data),this.state.files)
         } else {
             this.setState({
                 open: true,
@@ -298,7 +366,10 @@ class UserInput extends React.Component {
                         {
                             // use buttonClick to reload the message
                             this.state.urlId && !this.state.buttonSendClick ? (
-                                <SuccessUrlId urlId={this.state.urlId} encKey={this.encryptor.getKey()} />
+                                <SuccessUrlId
+                                    urlId={this.state.urlId}
+                                    encKey={this.encryptor.getKey()}
+                                />
                             ) : (
                                 ''
                             )
@@ -385,32 +456,61 @@ class UserInput extends React.Component {
                                 />
                             </Tooltip>
                         </Box>
-                        
-                        <Textarea
-                            sx={{}}
-                            label="New paste"
-                            placeholder="Type in here…"
-                            minRows={10}
-                            fullwidth="true"
-                            required
-                            autoFocus
-                            value={this.state.text}
-                            onChange={(event) =>
-                                this.setState({ text: event.target.value })
+
+                        {this.state.isFileAttached ? (
+                            ''
+                        ) : (
+                            <Textarea
+                                sx={{}}
+                                label="New paste"
+                                placeholder="Type in here…"
+                                minRows={10}
+                                fullwidth="true"
+                                required
+                                autoFocus
+                                value={this.state.text}
+                                onChange={(event) =>
+                                    this.setState({ text: event.target.value })
+                                }
+                                startDecorator={
+                                    <Box
+                                        sx={{ display: 'flex', gap: 0.5 }}
+                                    ></Box>
+                                }
+                                endDecorator={
+                                    <Typography
+                                        level="body3"
+                                        sx={{ ml: 'auto' }}
+                                    >
+                                        {this.state.text.length} character(s)
+                                    </Typography>
+                                }
+                            />
+                        )}
+                        <Button
+                            variant="outlined"
+                            component="label"
+                            color="secondary"
+                            onClick={() =>
+                                (this.setState({isFileAttached: true}))
                             }
-                            startDecorator={
-                                <Box sx={{ display: 'flex', gap: 0.5 }}></Box>
-                            }
-                            endDecorator={
-                                <Typography level="body3" sx={{ ml: 'auto' }}>
-                                    {this.state.text.length} character(s)
-                                </Typography>
-                            }
-                        />
+                        >
+                            {' '}
+                            <UploadFileIcon sx={{ mr: 1 }} />
+                            Attach file
+                            <input
+                                type="file"
+                                hidden
+                                onChange={(file) =>
+                                    this.handleFilesChange(file)
+                                }
+                                
+                            />
+                        </Button>
 
                         <Button
-                            disabled={this.state.self_address ? false : true}
-                            loading={this.state.buttonSendClick}
+                           disabled={this.state.self_address ? false : true}
+                            //loading={this.state.buttonSendClick}
                             onClick={this.sendText}
                             endDecorator={<SendIcon />}
                             sx={{ mt: 1 /* margin top */ }}
