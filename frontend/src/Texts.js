@@ -415,6 +415,11 @@ class Texts extends React.Component {
                                 variant="soft"
                                 endDecorator={<KeyboardArrowRight />}
                                 color="success"
+                                sx={{
+                                    overflow: 'hidden',
+                                    whiteSpace: 'nowrap',
+                                    textOverflow: 'ellipsis',
+                                }}
                             >
                                 Download {this.userFile.filename} file
                             </Button>

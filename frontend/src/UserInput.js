@@ -19,6 +19,7 @@ import { withRouter } from './components/withRouter'
 import ErrorModal from './components/ErrorModal'
 import SuccessUrlId from './components/SuccessUrlId'
 import { connectMixnet } from './context/createConnection'
+import HumanizeDuration from 'humanize-duration'
 
 const recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
 
@@ -84,11 +85,12 @@ class UserInput extends React.Component {
     handleFilesChange(files) {
         //reset the state for the modal, workaround, would have to change
         // handle validations
-        const limitSize = 150_000
-        if (files.target.files[0].size > limitSize) {
+        const fileSize = files.target.files[0].size
+        const limitSize = 320_000
+        if (fileSize > limitSize) {
             this.setState({
                 open: true,
-                textError: 'Files are limited to 100 KB',
+                textError: 'Files are limited to 300 KB',
                 isFileAttached: false,
             })
 
@@ -98,6 +100,7 @@ class UserInput extends React.Component {
         this.setState({
             files: [...files.target.files],
             isFileAttached: true,
+            estimatedTime: Math.floor(fileSize / 3000), //totally random, but it can help user to not break the app
         })
     }
 
@@ -520,7 +523,6 @@ class UserInput extends React.Component {
                                 </Typography>
                             }
                         />
-
                         <Button
                             variant="outlined"
                             component="label"
@@ -529,16 +531,32 @@ class UserInput extends React.Component {
                             {' '}
                             <UploadFileIcon sx={{ mr: 1 }} />
                             {this.state.isFileAttached ? (
-                                <Typography
-                                    fontSize="sm"
-                                    sx={{
-                                        overflow: 'hidden',
-                                        whiteSpace: 'nowrap',
-                                        textOverflow: 'ellipsis',
-                                    }}
-                                >
-                                    File {this.state.files[0].name} is attached
-                                </Typography>
+                                <>
+                                    <Typography
+                                        fontSize="sm"
+                                        sx={{
+                                            wordBreak: 'break-all',
+                                        }}
+                                    >
+                                        File {this.state.files[0].name} is
+                                        attached.
+                                        <br />
+                                        Time to send: ~
+                                        {
+                                            //https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss
+                                            new Date(
+                                                (this.state.estimatedTime %
+                                                    86400) *
+                                                    1000
+                                            )
+                                                .toUTCString()
+                                                .replace(
+                                                    /.*(\d{2}):(\d{2}):(\d{2}).*/,
+                                                    '$2m $3s'
+                                                )
+                                        }
+                                    </Typography>
+                                </>
                             ) : (
                                 <Typography
                                     fontSize="sm"
@@ -548,7 +566,7 @@ class UserInput extends React.Component {
                                         textOverflow: 'ellipsis',
                                     }}
                                 >
-                                    Attach file (Limit: 100KB)
+                                    Attach file (Limit: 300KB)
                                 </Typography>
                             )}
                             <input
