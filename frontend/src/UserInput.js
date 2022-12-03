@@ -19,7 +19,6 @@ import { withRouter } from './components/withRouter'
 import ErrorModal from './components/ErrorModal'
 import SuccessUrlId from './components/SuccessUrlId'
 import { connectMixnet } from './context/createConnection'
-import HumanizeDuration from 'humanize-duration'
 
 const recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
 
