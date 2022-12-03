@@ -20,7 +20,7 @@ import ErrorModal from './components/ErrorModal'
 import SuccessUrlId from './components/SuccessUrlId'
 import { connectMixnet } from './context/createConnection'
 
-let recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
+const recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
 
 class UserInput extends React.Component {
     constructor(props) {
@@ -43,6 +43,8 @@ class UserInput extends React.Component {
             isFileAttached: false,
         }
 
+        this.files = null
+
         // Instanciating a new encryptor will generate new key by default
         this.encryptor = new E2EEncryptor()
 
@@ -50,6 +52,7 @@ class UserInput extends React.Component {
         //this.getPaste = this.getPaste.bind(this)
         this.handleFileUploadError = this.handleFileUploadError.bind(this)
         this.handleFilesChange = this.handleFilesChange.bind(this)
+        this.modalHandler = this.modalHandler.bind(this)
     }
 
     async componentDidMount() {
@@ -74,12 +77,27 @@ class UserInput extends React.Component {
         // Do something...
     }
 
+    modalHandler(status) {
+        this.setState({ open: status })
+    }
+
     handleFilesChange(files) {
+        //reset the state for the modal, workaround, would have to change
         // handle validations
-        console.log(files.target.files)
+        const limitSize = 150_000
+        if (files.target.files[0].size > limitSize) {
+            this.setState({
+                open: true,
+                textError: 'Files are limited to 100 KB',
+                isFileAttached: false,
+            })
+
+            return
+        }
 
         this.setState({
             files: [...files.target.files],
+            isFileAttached: true,
         })
     }
 
@@ -137,13 +155,14 @@ class UserInput extends React.Component {
 
     mergeUInt8Arrays(a1, a2) {
         // sum of individual array lengths
-        var mergedArray = new Uint8Array(a1.length + a2.length);
-        mergedArray.set(a1);
-        mergedArray.set(a2, a1.length);
-        return mergedArray;
-      }
+        var mergedArray = new Uint8Array(a1.length + a2.length)
+        mergedArray.set(a1)
+        mergedArray.set(a2, a1.length)
+        return mergedArray
+    }
 
-    async sendBinaryMessageTo(data,payload) {
+    // do not use this
+    async sendBinaryMessageTo(data, payload) {
         if (!this.nym) {
             console.error(
                 'Could not send message because worker does not exist'
@@ -153,30 +172,28 @@ class UserInput extends React.Component {
         let fileArray = undefined
         let headers = undefined
 
-        data = "#####"+data+"#####"
-        const dataArray =  Uint8Array.from(data.split("").map(x => x.charCodeAt()))
+        const dataArray = Uint8Array.from(
+            '####'.split('').map((x) => x.charCodeAt())
+        )
         console.log(payload)
         await Promise.all(
             payload.map(async (f) => {
                 const buffer = await f.arrayBuffer()
                 fileArray = new Uint8Array(buffer)
-                headers = { filename: f.name, mimeType: f.type }
-            }))
-                //headers have to be defined maybe
-                //headers: { filename: f.name, mimeType: f.type }
-                console.log(fileArray)
-                console.log(dataArray)
-                data.file=fileArray
-                try {
-                    await this.nym.client.sendBinaryMessage({
-                        payload: this.mergeUInt8Arrays(dataArray,fileArray),
-                        recipient: recipient,
-                        headers: JSON.stringify(headers)
-                    })
-                } catch (e) {
-                    console.log('Failed to send file', e)
-                }
-                return undefined
+                headers = { filename: f.name, mimeType: f.type, data: data }
+            })
+        )
+
+        try {
+            await this.nym.client.sendBinaryMessage({
+                payload: this.mergeUInt8Arrays(dataArray, fileArray),
+                recipient: recipient,
+                headers: JSON.stringify(headers),
+            })
+        } catch (e) {
+            console.log('Failed to send file', e)
+        }
+        return undefined
     }
 
     async sendMessageTo(payload) {
@@ -187,9 +204,12 @@ class UserInput extends React.Component {
             return
         }
 
-        console.log({ payload, recipient })
+        await this.nym.client.sendBinaryMessage({ payload, recipient })
 
-        await this.nym.client.sendMessage({ payload, recipient })
+        this.setState({
+            files: null,
+            isFileAttached: false,
+        })
     }
 
     // Should remove this method and switch to Texts instead...
@@ -234,7 +254,7 @@ class UserInput extends React.Component {
     }
     */
 
-    sendText() {
+    async sendText() {
         if (
             (this.state.text.length <= 100000 && this.state.text.length > 0) ||
             this.state.files.length > 0
@@ -243,16 +263,35 @@ class UserInput extends React.Component {
                 buttonSendClick: true,
             })
 
-            // Encrypt text
-            const encrypted = this.encryptor.encrypt(this.state.text)
+            if (this.state.files) {
+                await Promise.all(
+                    this.state.files.map(async (f) => {
+                        const buffer = await f.arrayBuffer()
+                        const fileArray = new Uint8Array(buffer)
+                        this.files = {
+                            data: fileArray,
+                            filename: f.name,
+                            mimeType: f.type,
+                        }
+                    })
+                )
+            }
 
+            const clearObjectUser = {
+                text: this.state.text,
+                file: this.files,
+            }
+
+            // Encrypt text
+            const encrypted = this.encryptor.encrypt(
+                JSON.stringify(clearObjectUser)
+            )
             if (!encrypted) {
                 console.error('Failed to encrypt message.')
                 return
             }
 
             // As soon SURB will be implemented in wasm client, we will use it
-
             const data = {
                 event: 'newText',
                 sender: this.state.self_address,
@@ -266,8 +305,7 @@ class UserInput extends React.Component {
 
             /*if (this.state.text.length > 0)
                 this.sendMessageTo(JSON.stringify(data))*/
-            if (this.state.files.length > 0)
-                this.sendBinaryMessageTo(JSON.stringify(data),this.state.files)
+            if (encrypted) await this.sendMessageTo(JSON.stringify(data))
         } else {
             this.setState({
                 open: true,
@@ -375,7 +413,11 @@ class UserInput extends React.Component {
                             )
                         }
                         {this.state.open ? (
-                            <ErrorModal textError={this.state.textError} />
+                            <ErrorModal
+                                open={this.state.open}
+                                handler={this.modalHandler}
+                                textError={this.state.textError}
+                            />
                         ) : (
                             ''
                         )}
@@ -457,60 +499,69 @@ class UserInput extends React.Component {
                             </Tooltip>
                         </Box>
 
-                        {this.state.isFileAttached ? (
-                            ''
-                        ) : (
-                            <Textarea
-                                sx={{}}
-                                label="New paste"
-                                placeholder="Type in here…"
-                                minRows={10}
-                                fullwidth="true"
-                                required
-                                autoFocus
-                                value={this.state.text}
-                                onChange={(event) =>
-                                    this.setState({ text: event.target.value })
-                                }
-                                startDecorator={
-                                    <Box
-                                        sx={{ display: 'flex', gap: 0.5 }}
-                                    ></Box>
-                                }
-                                endDecorator={
-                                    <Typography
-                                        level="body3"
-                                        sx={{ ml: 'auto' }}
-                                    >
-                                        {this.state.text.length} character(s)
-                                    </Typography>
-                                }
-                            />
-                        )}
+                        <Textarea
+                            sx={{}}
+                            label="New paste"
+                            placeholder="Type in here…"
+                            minRows={10}
+                            fullwidth="true"
+                            required
+                            autoFocus
+                            value={this.state.text}
+                            onChange={(event) =>
+                                this.setState({ text: event.target.value })
+                            }
+                            startDecorator={
+                                <Box sx={{ display: 'flex', gap: 0.5 }}></Box>
+                            }
+                            endDecorator={
+                                <Typography level="body3" sx={{ ml: 'auto' }}>
+                                    {this.state.text.length} character(s)
+                                </Typography>
+                            }
+                        />
+
                         <Button
                             variant="outlined"
                             component="label"
                             color="secondary"
-                            onClick={() =>
-                                (this.setState({isFileAttached: true}))
-                            }
                         >
                             {' '}
                             <UploadFileIcon sx={{ mr: 1 }} />
-                            Attach file
+                            {this.state.isFileAttached ? (
+                                <Typography
+                                    fontSize="sm"
+                                    sx={{
+                                        overflow: 'hidden',
+                                        whiteSpace: 'nowrap',
+                                        textOverflow: 'ellipsis',
+                                    }}
+                                >
+                                    File {this.state.files[0].name} is attached
+                                </Typography>
+                            ) : (
+                                <Typography
+                                    fontSize="sm"
+                                    sx={{
+                                        overflow: 'hidden',
+                                        whiteSpace: 'nowrap',
+                                        textOverflow: 'ellipsis',
+                                    }}
+                                >
+                                    Attach file (Limit: 100KB)
+                                </Typography>
+                            )}
                             <input
                                 type="file"
                                 hidden
                                 onChange={(file) =>
                                     this.handleFilesChange(file)
                                 }
-                                
                             />
                         </Button>
-
                         <Button
-                           disabled={this.state.self_address ? false : true}
-                            //loading={this.state.buttonSendClick}
+                            disabled={this.state.self_address ? false : true}
+                            loading={this.state.buttonSendClick}
                             onClick={this.sendText}
                             endDecorator={<SendIcon />}
                             sx={{ mt: 1 /* margin top */ }}

@@ -6,7 +6,6 @@ import utils
 import rel
 from datetime import datetime
 import traceback
-from PIL import Image
 
 self_address_request = json.dumps({
     "type": "selfAddress"
@@ -101,38 +100,23 @@ class Serve:
             recipient = None
 
         except UnicodeDecodeError as e:
-            print("Unicode error, nothing to do about: {e}")
+            print(f"Unicode error, nothing to do about: {e}")
             return
 
         kindReceived = bytes(received_message['message'][0:8], 'utf-8')[0:1]
         
         # we received the data in a json
         try:
-            # received data with padding, start at the 9th byte
-            payload = bytes(received_message['message'][9:], 'utf-8').decode()
-            
+            # received data with padding, start at the
+            payload = received_message['message'][9:]
+            received_data = json.loads(payload)
+
             if kindReceived == NYM_KIND_TEXT:
                 pass
             elif kindReceived == NYM_KIND_BINARY:
-                extractData = payload.split("#####")
-
-                if len(extractData) > 0 :
-                    #no header
-                    if len(extractData[0]) < 0:
-                        data = extractData[1]
-                        fileData = extractData[2]
-                        headers = None
-                    else:
-                        headers = extractData[0]
-                        data = extractData[1]
-                        fileData = extractData[2]
-                        
-                print(data,extractData,fileData)
-                ff = open('test.jpg',"wb")
-                ff.write(bytes(fileData,'utf-8'))
-                ff.close()
-                received_data = json.loads(data)
+                pass
             
+
             recipient = received_data['sender']
             event = received_data['event']
             data = received_data['data']
