@@ -8,9 +8,6 @@ class ErrorModal extends React.Component {
     constructor(props) {
         super(props)
 
-        this.state ={
-            open: true
-        }
     }
 
     render() {
@@ -18,8 +15,8 @@ class ErrorModal extends React.Component {
                 <Modal
                     aria-labelledby="modal-title"
                     aria-describedby="modal-desc"
-                    open={this.state.open}
-                    onClose={() => this.setState({ open: false })}
+                    open={this.props.open}
+                    onClose={() => this.props.handler(false)}
                     sx={{
                         display: 'flex',
                         justifyContent: 'center',
