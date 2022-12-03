@@ -19,13 +19,14 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import WarningIcon from '@mui/icons-material/Warning'
 import Alert from '@mui/joy/Alert'
 import IconButton from '@mui/joy/IconButton'
-
+import Link from '@mui/joy/Link'
 import Header from './Header'
 import Footer from './Footer'
 import E2EEncryptor from './e2e'
 import TextStats from './components/TextStats'
-import {connectMixnet} from "./context/createConnection"
-
+import { connectMixnet } from './context/createConnection'
+import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight'
+import Button from '@mui/joy/Button'
 
 const muiTheme = extendMuiTheme({
     // This is required to point to `var(--joy-*)` because we are using `CssVarsProvider` from Joy UI.
@@ -109,7 +110,11 @@ class Texts extends React.Component {
         super(props)
         this.nym = null
 
-        const items = this.props.params.urlId.replace('#/', '').replace('#', '').split("&").map(l => l.split('='))
+        const items = this.props.params.urlId
+            .replace('#/', '')
+            .replace('#', '')
+            .split('&')
+            .map((l) => l.split('='))
         const urlId = items[0][0]
         this.params = {}
         for (let elt of items) {
@@ -122,11 +127,17 @@ class Texts extends React.Component {
             text: null,
             num_view: null,
             urlId: urlId,
-            isKeyProvided: this.params.hasOwnProperty('key') && this.params.key.length > 1,
+            isKeyProvided:
+                this.params.hasOwnProperty('key') && this.params.key.length > 1,
             created_on: null,
             ready: false,
             isPasteRetrieved: false,
+            isFileRetrieved: false,
+            isText: true,
+            isDataRetrieved: false            
         }
+
+        this.userFile = {}
 
         if (this.state.isKeyProvided) {
             this.encryptor = new E2EEncryptor(this.params.key)
@@ -137,7 +148,9 @@ class Texts extends React.Component {
 
     getPaste() {
         if (!this.nym) {
-            console.error('Could not send message because worker does not exist')
+            console.error(
+                'Could not send message because worker does not exist'
+            )
             return
         }
 
@@ -155,11 +168,11 @@ class Texts extends React.Component {
 
     async componentDidMount() {
         this.nym = await connectMixnet()
-    
+
         this.nym.events.subscribeToTextMessageReceivedEvent((e) => {
             this.displayReceived(e.args.payload)
         })
-    
+
         this.nym.events.subscribeToConnected((e) => {
             if (e.args.address) {
                 this.setState({
@@ -177,43 +190,83 @@ class Texts extends React.Component {
         const replySurb = message.replySurb
 
         if (!data.hasOwnProperty('error')) {
-            let text = he.decode(data['text'])
+            let userData = he.decode(data['text'])
 
             // Decrypt if text is encrypted
-            if (data.hasOwnProperty('encParams') && undefined != data['encParams']) {
+            if (
+                data.hasOwnProperty('encParams') &&
+                undefined != data['encParams']
+            ) {
                 if (!this.state.isKeyProvided) {
-                    console.error("Text seems to be encrypted but no key is provided. Displaying encrypted text")
+                    console.error(
+                        'Text seems to be encrypted but no key is provided. Displaying encrypted text'
+                    )
                 } else {
                     const encParams = data['encParams']
-                    text = this.encryptor.decrypt(text, encParams)
+                    userData = JSON.parse(
+                        this.encryptor.decrypt(userData, encParams)
+                    )
                 }
             }
 
+            //stats
             this.setState({
-                text: he.decode(text),
                 num_view: data['num_view'],
                 created_on: data['created_on'],
                 is_burn: data['is_burn'],
             })
+
+            if (userData['text'] !== '') {
+                this.setState({
+                    text: he.decode(userData['text']),
+                })
+                this.setState({
+                    isPasteRetrieved: true,
+                })
+            } else {
+                //no text share remove the textarea
+                this.setState({
+                    isText: false,
+                })
+            }
+
+            if (userData.file !== {}) {
+                // js object to array, remove the keys
+                const fileData = Object.keys(userData.file['data']).map(
+                    function (key) {
+                        return userData.file['data'][key]
+                    }
+                )
+                this.userFile = {
+                    fileData: URL.createObjectURL(
+                        new Blob([Uint8Array.from(fileData)], {
+                            type: userData.file['mimeType'],
+                        })
+                    ),
+                    filename: userData.file['filename'],
+                }
+                this.setState({ isFileRetrieved: true })
+            }
+
+            //global state to stop sending message when text or file is fetched
+            this.setState({isDataRetrieved: true})
         } else {
             this.setState({
                 text: he.decode(data['error']),
             })
         }
-
-        this.setState({
-            isPasteRetrieved: true,
-        })
     }
 
     componentWillUnmount() {}
 
     async sendMessageTo(payload) {
         if (!this.nym) {
-            console.error('Could not send message because worker does not exist')
+            console.error(
+                'Could not send message because worker does not exist'
+            )
             return
         }
-  
+
         await this.nym.client.sendMessage({
             payload,
             recipient,
@@ -221,7 +274,8 @@ class Texts extends React.Component {
     }
 
     render() {
-        if (this.state.ready && this.state.isPasteRetrieved !== true) this.getPaste()
+        if (this.state.ready && this.state.isDataRetrieved !== true)
+                this.getPaste()
 
         return (
             <CssVarsProvider theme={theme}>
@@ -353,26 +407,53 @@ class Texts extends React.Component {
                             </div>
                         )}
                         <b>Paste</b>
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                whiteSpace: 'pre-wrap',
-                                overflowWrap: 'anywhere',
-                                border: '1px solid  rgb(211,211,211)',
-                                borderRadius: '5px',
-                                p: 1,
-                            }}
-                        >
-                            {this.state.text ? (
-                                this.state.text
+                        {this.state.isFileRetrieved ? (
+                            <Button
+                                component="a"
+                                href={this.userFile.fileData}
+                                download={this.userFile.filename}
+                                variant="soft"
+                                endDecorator={<KeyboardArrowRight />}
+                                color="success"
+                                sx={{
+                                    overflow: 'hidden',
+                                    whiteSpace: 'nowrap',
+                                    textOverflow: 'ellipsis',
+                                }}
+                            >
+                                Download {this.userFile.filename} file
+                            </Button>
+                        ) : (
+                            ''
+                        )}
+
+                        {
+                            // if not text share don't render text area
+                            this.state.isText ? (
+                                <Box
+                                    sx={{
+                                        display: 'flex',
+                                        whiteSpace: 'pre-wrap',
+                                        overflowWrap: 'anywhere',
+                                        border: '1px solid  rgb(211,211,211)',
+                                        borderRadius: '5px',
+                                        p: 1,
+                                    }}
+                                >
+                                    {this.state.text ? (
+                                        this.state.text
+                                    ) : (
+                                        <Skeleton
+                                            variant="rounded"
+                                            width="100%"
+                                            height={60}
+                                        />
+                                    )}
+                                </Box>
                             ) : (
-                                <Skeleton
-                                    variant="rounded"
-                                    width="100%"
-                                    height={60}
-                                />
-                            )}
-                        </Box>
+                                ''
+                            )
+                        }
                     </Sheet>
                 </main>
                 <footer>

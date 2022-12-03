@@ -16,14 +16,18 @@ import ContentCopy from '@mui/icons-material/ContentCopy'
 import Tooltip from '@mui/joy/Tooltip'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
 
-const SERVER_NAME = process.env.SERVER_NAME || "https://pastenym.ch"
+const SERVER_NAME = process.env.SERVER_NAME || 'https://pastenym.ch'
 
 class SuccessUrlId extends React.Component {
     constructor(props) {
         super(props)
 
         this.state = {
-            url: SERVER_NAME + '/#/' + this.props.urlId + (this.props.encKey ? '&key=' + this.props.encKey : ''),
+            url:
+                SERVER_NAME +
+                '/#/' +
+                this.props.urlId +
+                (this.props.encKey ? '&key=' + this.props.encKey : ''),
             urlId: this.props.urlId,
             open: false,
             textButton: 'Copy to clipboard',
@@ -41,9 +45,7 @@ class SuccessUrlId extends React.Component {
             const textToCopy = this.state.url
             //from  https://stackoverflow.com/a/65996386
             if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(
-                    textToCopy
-                )
+                navigator.clipboard.writeText(textToCopy)
             } else {
                 // text area method
                 let textArea = document.createElement('textarea')
@@ -77,18 +79,22 @@ class SuccessUrlId extends React.Component {
                 variant="soft"
                 color="success"
                 endDecorator={
-                    <IconButton variant="soft" size="sm" color="success">
-                       
-                    </IconButton>
+                    <IconButton
+                        variant="soft"
+                        size="sm"
+                        color="success"
+                    ></IconButton>
                 }
             >
                 <div>
                     <Typography fontWeight="lg" mt={0.25}>
                         Text saved
                     </Typography>
-                    <Typography fontSize="sm" sx={{ opacity: 0.8 }}>
-                        Your text is accessible at{' '}
-                        {this.state.url}
+                    <Typography
+                        fontSize="sm"
+                        sx={{ opacity: 0.8, wordBreak: 'break-word' }}
+                    >
+                        Your text is accessible at {this.state.url}
                         {'   '}
                         <ClickAwayListener
                             onClickAway={() => {

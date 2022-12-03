@@ -10,9 +10,7 @@ import SendIcon from '@mui/icons-material/Send'
 import CircularProgress from '@mui/joy/CircularProgress'
 import Checkbox from '@mui/joy/Checkbox'
 import Tooltip from '@mui/joy/Tooltip'
-import TextField from '@mui/joy/TextField'
-import ScreenSearchDesktopIcon from '@mui/icons-material/ScreenSearchDesktop'
-
+import UploadFileIcon from '@mui/icons-material/UploadFile'
 import Header from './Header'
 import Footer from './Footer'
 import E2EEncryptor from './e2e'
@@ -20,10 +18,10 @@ import ShowText from './components/ShowText'
 import { withRouter } from './components/withRouter'
 import ErrorModal from './components/ErrorModal'
 import SuccessUrlId from './components/SuccessUrlId'
-import {connectMixnet} from "./context/createConnection"
+import { connectMixnet } from './context/createConnection'
+import HumanizeDuration from 'humanize-duration'
 
-
-let recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
+const recipient = process.env.REACT_APP_NYM_CLIENT_SERVER
 
 class UserInput extends React.Component {
     constructor(props) {
@@ -42,22 +40,29 @@ class UserInput extends React.Component {
             textReceived: null,
             //urlIdGet: null,
             buttonGetClick: false,
+            files: null,
+            isFileAttached: false,
         }
+
+        this.files = null
 
         // Instanciating a new encryptor will generate new key by default
         this.encryptor = new E2EEncryptor()
 
         this.sendText = this.sendText.bind(this)
         //this.getPaste = this.getPaste.bind(this)
+        this.handleFileUploadError = this.handleFileUploadError.bind(this)
+        this.handleFilesChange = this.handleFilesChange.bind(this)
+        this.modalHandler = this.modalHandler.bind(this)
     }
 
     async componentDidMount() {
         this.nym = await connectMixnet()
-    
+
         this.nym.events.subscribeToTextMessageReceivedEvent((e) => {
             this.displayReceived(e.args.payload)
         })
-    
+
         this.nym.events.subscribeToConnected((e) => {
             if (e.args.address) {
                 this.setState({
@@ -68,6 +73,36 @@ class UserInput extends React.Component {
     }
 
     componentWillUnmount() {}
+
+    handleFileUploadError = (error) => {
+        // Do something...
+    }
+
+    modalHandler(status) {
+        this.setState({ open: status })
+    }
+
+    handleFilesChange(files) {
+        //reset the state for the modal, workaround, would have to change
+        // handle validations
+        const fileSize = files.target.files[0].size
+        const limitSize = 320_000
+        if (fileSize > limitSize) {
+            this.setState({
+                open: true,
+                textError: 'Files are limited to 300 KB',
+                isFileAttached: false,
+            })
+
+            return
+        }
+
+        this.setState({
+            files: [...files.target.files],
+            isFileAttached: true,
+            estimatedTime: Math.floor(fileSize / 3000), //totally random, but it can help user to not break the app
+        })
+    }
 
     displayReceived(message) {
         const content = message
@@ -121,15 +156,63 @@ class UserInput extends React.Component {
         return typeof item === 'object' && item !== null
     }
 
+    mergeUInt8Arrays(a1, a2) {
+        // sum of individual array lengths
+        var mergedArray = new Uint8Array(a1.length + a2.length)
+        mergedArray.set(a1)
+        mergedArray.set(a2, a1.length)
+        return mergedArray
+    }
+
+    // do not use this
+    async sendBinaryMessageTo(data, payload) {
+        if (!this.nym) {
+            console.error(
+                'Could not send message because worker does not exist'
+            )
+            return
+        }
+        let fileArray = undefined
+        let headers = undefined
+
+        const dataArray = Uint8Array.from(
+            '####'.split('').map((x) => x.charCodeAt())
+        )
+        console.log(payload)
+        await Promise.all(
+            payload.map(async (f) => {
+                const buffer = await f.arrayBuffer()
+                fileArray = new Uint8Array(buffer)
+                headers = { filename: f.name, mimeType: f.type, data: data }
+            })
+        )
+
+        try {
+            await this.nym.client.sendBinaryMessage({
+                payload: this.mergeUInt8Arrays(dataArray, fileArray),
+                recipient: recipient,
+                headers: JSON.stringify(headers),
+            })
+        } catch (e) {
+            console.log('Failed to send file', e)
+        }
+        return undefined
+    }
+
     async sendMessageTo(payload) {
         if (!this.nym) {
-            console.error('Could not send message because worker does not exist')
+            console.error(
+                'Could not send message because worker does not exist'
+            )
             return
         }
 
-        console.log({ payload, recipient })
-
         await this.nym.client.sendMessage({ payload, recipient })
+
+        this.setState({
+            files: null,
+            isFileAttached: false,
+        })
     }
 
     // Should remove this method and switch to Texts instead...
@@ -174,17 +257,40 @@ class UserInput extends React.Component {
     }
     */
 
-    sendText() {
-        if (this.state.text.length <= 100000 && this.state.text.length > 0) {
+    async sendText() {
+        if (
+            (this.state.text.length <= 100000 && this.state.text.length > 0) ||
+            this.state.files.length > 0
+        ) {
             this.setState({
                 buttonSendClick: true,
             })
 
-            // Encrypt text
-            const encrypted = this.encryptor.encrypt(this.state.text)
+            if (this.state.files) {
+                await Promise.all(
+                    this.state.files.map(async (f) => {
+                        const buffer = await f.arrayBuffer()
+                        const fileArray = new Uint8Array(buffer)
+                        this.files = {
+                            data: fileArray,
+                            filename: f.name,
+                            mimeType: f.type,
+                        }
+                    })
+                )
+            }
 
+            const clearObjectUser = {
+                text: this.state.text,
+                file: this.files,
+            }
+
+            // Encrypt text
+            const encrypted = this.encryptor.encrypt(
+                JSON.stringify(clearObjectUser)
+            )
             if (!encrypted) {
-                console.error("Failed to encrypt message.")
+                console.error('Failed to encrypt message.')
                 return
             }
 
@@ -199,7 +305,10 @@ class UserInput extends React.Component {
                     encParams: encrypted[1],
                 },
             }
-            this.sendMessageTo(JSON.stringify(data))
+
+            /*if (this.state.text.length > 0)
+                this.sendMessageTo(JSON.stringify(data))*/
+            if (encrypted) await this.sendMessageTo(JSON.stringify(data))
         } else {
             this.setState({
                 open: true,
@@ -298,13 +407,20 @@ class UserInput extends React.Component {
                         {
                             // use buttonClick to reload the message
                             this.state.urlId && !this.state.buttonSendClick ? (
-                                <SuccessUrlId urlId={this.state.urlId} encKey={this.encryptor.getKey()} />
+                                <SuccessUrlId
+                                    urlId={this.state.urlId}
+                                    encKey={this.encryptor.getKey()}
+                                />
                             ) : (
                                 ''
                             )
                         }
                         {this.state.open ? (
-                            <ErrorModal textError={this.state.textError} />
+                            <ErrorModal
+                                open={this.state.open}
+                                handler={this.modalHandler}
+                                textError={this.state.textError}
+                            />
                         ) : (
                             ''
                         )}
@@ -385,7 +501,7 @@ class UserInput extends React.Component {
                                 />
                             </Tooltip>
                         </Box>
-                        
+
                         <Textarea
                             sx={{}}
                             label="New paste"
@@ -407,7 +523,60 @@ class UserInput extends React.Component {
                                 </Typography>
                             }
                         />
-
+                        <Button
+                            variant="outlined"
+                            component="label"
+                            color="secondary"
+                        >
+                            {' '}
+                            <UploadFileIcon sx={{ mr: 1 }} />
+                            {this.state.isFileAttached ? (
+                                <>
+                                    <Typography
+                                        fontSize="sm"
+                                        sx={{
+                                            wordBreak: 'break-all',
+                                        }}
+                                    >
+                                        File {this.state.files[0].name} is
+                                        attached.
+                                        <br />
+                                        Time to send: ~
+                                        {
+                                            //https://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss
+                                            new Date(
+                                                (this.state.estimatedTime %
+                                                    86400) *
+                                                    1000
+                                            )
+                                                .toUTCString()
+                                                .replace(
+                                                    /.*(\d{2}):(\d{2}):(\d{2}).*/,
+                                                    '$2m $3s'
+                                                )
+                                        }
+                                    </Typography>
+                                </>
+                            ) : (
+                                <Typography
+                                    fontSize="sm"
+                                    sx={{
+                                        overflow: 'hidden',
+                                        whiteSpace: 'nowrap',
+                                        textOverflow: 'ellipsis',
+                                    }}
+                                >
+                                    Attach file (Limit: 300KB)
+                                </Typography>
+                            )}
+                            <input
+                                type="file"
+                                hidden
+                                onChange={(file) =>
+                                    this.handleFilesChange(file)
+                                }
+                            />
+                        </Button>
                         <Button
                             disabled={this.state.self_address ? false : true}
                             loading={this.state.buttonSendClick}

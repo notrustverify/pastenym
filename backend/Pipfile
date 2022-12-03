@@ -9,6 +9,8 @@ python-dotenv = "0.21.0"
 websockets = "10.3"
 websocket-client = "1.4.1"
 rel = "*"
+pillow = "*"
+bson = "*"
 
 [dev-packages]
 

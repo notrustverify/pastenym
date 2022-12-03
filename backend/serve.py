@@ -14,11 +14,11 @@ self_address_request = json.dumps({
 CMD_NEW_TEXT = "newText"
 CMD_GET_TEXT = "getText"
 
-NYM_KIND_TEXT = b'\x00'*8  # uint8
+NYM_KIND_TEXT = b'\x00'  # uint8
 NYM_KIND_BINARY = b'\x01'
 
-NYM_HEADER_SIZE_TEXT = b'\x00'  # set to 0 if it's a text
-NYM_HEADER_BINARY = b'\x00'  # not used now, to investigate later
+NYM_HEADER_SIZE_TEXT = b'\x00'*8  # set to 0 if it's a text
+NYM_HEADER_BINARY = b'\x00'*8  # not used now, to investigate later
 
 
 class Serve:
@@ -62,6 +62,7 @@ class Serve:
 
         rel.signal(2, rel.abort)  # Keyboard Interrupt
         rel.dispatch()
+        self.ws.close()
 
     def on_ping(self, ws):
         pass
@@ -99,14 +100,22 @@ class Serve:
             recipient = None
 
         except UnicodeDecodeError as e:
-            print("Unicode error, nothing to do about: {e}")
+            print(f"Unicode error, nothing to do about: {e}")
             return
 
+        kindReceived = bytes(received_message['message'][0:8], 'utf-8')[0:1]
+        
         # we received the data in a json
         try:
-            # received data with padding, remove them
-            received_data = json.loads(
-                received_message['message'].replace("\x00", ""))
+            # received data with padding, start at the
+            payload = received_message['message'][9:]
+            received_data = json.loads(payload)
+
+            if kindReceived == NYM_KIND_TEXT:
+                pass
+            elif kindReceived == NYM_KIND_BINARY:
+                pass
+            
 
             recipient = received_data['sender']
             event = received_data['event']
