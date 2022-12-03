@@ -204,7 +204,7 @@ class UserInput extends React.Component {
             return
         }
 
-        await this.nym.client.sendBinaryMessage({ payload, recipient })
+        await this.nym.client.sendMessage({ payload, recipient })
 
         this.setState({
             files: null,
