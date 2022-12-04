@@ -1,5 +1,5 @@
 import * as React from 'react'
-
+import { Image } from 'mui-image'
 import Box from '@mui/joy/Box'
 
 class FileRender extends React.Component {
@@ -10,20 +10,9 @@ class FileRender extends React.Component {
     render() {
         return (
             <main>
-                <Box
-                sx= {{
-                    maxWidth: "100%",
-                    height: "auto",
-                    padding: 0,
-                    margin: 0,
-                }}
-                >
-                    <img
-                        
+                <Box>
+                    <Image
                         src={this.props.fileData}
-                        srcSet={`${this.props.fileData} 2x`}
-                        loading="lazy"
-                        alt=""
                     />
                 </Box>
             </main>
