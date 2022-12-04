@@ -27,6 +27,8 @@ import TextStats from './components/TextStats'
 import { connectMixnet } from './context/createConnection'
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight'
 import Button from '@mui/joy/Button'
+import FileRender from './components/FileRender'
+
 
 const muiTheme = extendMuiTheme({
     // This is required to point to `var(--joy-*)` because we are using `CssVarsProvider` from Joy UI.
@@ -134,7 +136,7 @@ class Texts extends React.Component {
             isPasteRetrieved: false,
             isFileRetrieved: false,
             isText: true,
-            isDataRetrieved: false            
+            isDataRetrieved: false,
         }
 
         this.userFile = {}
@@ -229,8 +231,8 @@ class Texts extends React.Component {
                     isText: false,
                 })
             }
-
-            if (userData.file !== {}) {
+ 
+            if (userData.file) {
                 // js object to array, remove the keys
                 const fileData = Object.keys(userData.file['data']).map(
                     function (key) {
@@ -244,12 +246,14 @@ class Texts extends React.Component {
                         })
                     ),
                     filename: userData.file['filename'],
+                    mimeType: userData.file['mimeType'],
                 }
                 this.setState({ isFileRetrieved: true })
+
             }
 
             //global state to stop sending message when text or file is fetched
-            this.setState({isDataRetrieved: true})
+            this.setState({ isDataRetrieved: true })
         } else {
             this.setState({
                 text: he.decode(data['error']),
@@ -275,7 +279,7 @@ class Texts extends React.Component {
 
     render() {
         if (this.state.ready && this.state.isDataRetrieved !== true)
-                this.getPaste()
+            this.getPaste()
 
         return (
             <CssVarsProvider theme={theme}>
@@ -407,6 +411,7 @@ class Texts extends React.Component {
                             </div>
                         )}
                         <b>Paste</b>
+
                         {this.state.isFileRetrieved ? (
                             <Button
                                 component="a"
@@ -427,6 +432,11 @@ class Texts extends React.Component {
                             ''
                         )}
 
+                            {this.state.isFileRetrieved && this.userFile.mimeType.includes('image/') ? (
+                            <FileRender fileData={this.userFile.fileData} />
+                        ) : (
+                            ''
+                        )}
                         {
                             // if not text share don't render text area
                             this.state.isText ? (
