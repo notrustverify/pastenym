@@ -412,7 +412,7 @@ class Texts extends React.Component {
                         )}
                         <b>Paste</b>
 
-                        {this.state.isFileRetrieved ? (
+                        {this.state.isFileRetrieved && !this.userFile.mimeType.includes('image/') ? (
                             <Button
                                 component="a"
                                 href={this.userFile.fileData}
