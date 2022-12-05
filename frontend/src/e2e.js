@@ -42,7 +42,7 @@ class E2EEncryptor {
 
     let ciphertext = null
     try {
-      const strCiphertext = sjcl.encrypt(this.#key, plaintext, {ks: 128})
+      const strCiphertext = sjcl.encrypt(this.#key, plaintext, {ks: 256})
       ciphertext = sjcl.json.decode(strCiphertext)
     }
     catch (e) {
