@@ -1,5 +1,3 @@
-[![Node.js CI](https://github.com/notrustverify/pastenym/actions/workflows/frontend.yml/badge.svg)](https://github.com/notrustverify/pastenym/actions/workflows/frontend.yml)
-
 # pastenym
 
 This project is inspired from [pastebin](https://pastebin.com/) service.
@@ -7,7 +5,7 @@ The main goal is to offer a solution for sharing text with [Nym](https://nymtech
 to offer full anonymity, even on metadata level
 
 #### Demo
-Get shared text: [https://pastenym.ch/#/jD6Vhmrz&key=b2d6ae002a1674daa43a07be7fc4f01c](https://pastenym.ch/#/cuc0yBM7&key=331362fb93d7d7730ae182660edba661)
+Get shared text: [https://pastenym.ch/#/jD6Vhmrz&key=b2d6ae002a1674daa43a07be7fc4f01c](https://pastenym.ch/#/jD6Vhmrz&key=b2d6ae002a1674daa43a07be7fc4f01c)
 
 Share a text: [http://pastenym.ch/](http://pastenym.ch/)
 
@@ -79,6 +77,6 @@ cp -r ~/.nym/clients/docker-client nym-data/clients
 ## Structure
 
 * `backend/` manage the websockets connections and DB
-* `frontend/` web application
+* [Frontend](https://github.com/notrustverify/pastenym-frontend) web application
 * `nym-client/` store the configuration,keys for the nym-client
 * `resources/` store img or files for documentation
