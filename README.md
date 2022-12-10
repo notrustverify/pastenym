@@ -55,9 +55,9 @@ It uses [pipenv](https://pipenv.pypa.io/en/latest/install/)
 If you wish to contribute to the project, you will need to run the Nym client and Backend as explained in the Init part above AND run a local frontend.
 
 ### Frontend
-NodeJS (`v16.13.1`) and NPM (`v8.19.2`) are used for the frontend.
+NodeJS (`v16.13.1`) and NPM (`v9.20.0`) are used for the frontend.
 
-1. Go to the `frontend/` directory
+1. Clone https://github.com/notrustverify/pastenym-frontend and move in the folder
 2. Create a `.env` file with the same keys are in `.env.example` with your values. The `REACT_APP_NYM_CLIENT_SERVER` value should match the address displayed by the backend.
 3. Run `npm install` and grab a cup of coffee
 4. Run `npm run start` and go to [http://localhost:8080](http://localhost:8080) in your favorite browser.
