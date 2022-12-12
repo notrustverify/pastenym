@@ -44,7 +44,6 @@ class Serve:
         url = f"ws://{utils.NYM_CLIENT_ADDR}:1977"
         self.firstRun = True
         self.pasteNym = PasteNym()
-
         websocket.enableTrace(False)
         self.ws = websocket.WebSocketApp(url,
                                          on_message=lambda ws, msg: self.on_message(
@@ -78,7 +77,7 @@ class Serve:
             print(f"Error ws: {message}")
             traceback.print_exc()
         except UnicodeDecodeError as e:
-            print("Unicode error, nothing to do about: {e}")
+            print(f"Unicode error, nothing to do about: {e}")
             return
         finally:
             self.ws.close()
@@ -104,7 +103,7 @@ class Serve:
             return
 
         kindReceived = bytes(received_message['message'][0:8], 'utf-8')[0:1]
-        
+
         # we received the data in a json
         try:
             # received data with padding, start at the
@@ -115,17 +114,18 @@ class Serve:
                 pass
             elif kindReceived == NYM_KIND_BINARY:
                 pass
-            
 
             recipient = received_data['sender']
             event = received_data['event']
             data = received_data['data']
-            print(f"-> Got {received_message}")
+            if utils.DEBUG:
+                print(f"-> Got {received_message}")
+            else:
+                print(f"-> Got recipient: {recipient}, event: {event}") 
 
         except (IndexError, KeyError, json.JSONDecodeError) as e:
             if recipient is not None:
                 err_msg = f"Error parsing message: {e}"
-                print(err_msg)
                 reply_message = err_msg
                 Serve.createPayload(recipient, reply_message)
             else:
@@ -141,7 +141,11 @@ class Serve:
             else:
                 reply = f"Error event {event} not found"
 
-            print(f"-> Rcv {event} - answers {reply} over the mix network.")
+            if utils.DEBUG:
+                print(f"-> Rcv {event} - answers {reply} over the mix network.")
+            else:
+                print(f"-> Rcv {event} - answers over the mix network.")
+
             self.ws.send(reply)
         else:
             print(f"No recipient found in message {received_message}")
@@ -189,3 +193,4 @@ class Serve:
             reply_message = "error"
 
         return Serve.createPayload(recipient, reply_message)
+
