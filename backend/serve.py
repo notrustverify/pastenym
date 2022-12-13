@@ -6,6 +6,10 @@ import utils
 import rel
 from datetime import datetime
 import traceback
+import struct
+import codecs
+import ctypes
+import sys
 
 self_address_request = json.dumps({
     "type": "selfAddress"
@@ -104,17 +108,37 @@ class Serve:
             return
 
         kindReceived = bytes(received_message['message'][0:8], 'utf-8')[0:1]
-        
+
+      
         # we received the data in a json
         try:
-            # received data with padding, start at the
+            # received data with padding, start at the 9th bytes
             payload = received_message['message'][9:]
-            received_data = json.loads(payload)
-
+            
             if kindReceived == NYM_KIND_TEXT:
-                pass
+                received_data = json.loads(payload)
+                """
+                print(json.loads(received_data['data']['text'])['file'])
+                tmp = []
+                print(list(json.loads(received_data['data']['text'])['file']['data'].values()))
+                binary_format = bytearray(list(json.loads(received_data['data']['text'])['file']['data'].values()))
+                with open("received_file_withreply", "wb") as output_file:
+                    print("writing the file back to the disk!")
+                    output_file.write(binary_format)
+                    """
             elif kindReceived == NYM_KIND_BINARY:
-                pass
+                print(bytes(payload,'utf-8'))
+                bMessage = bytes(message,'utf-8')
+                header = struct.unpack(">Q",bMessage[:8])
+                noise = struct.unpack("c", bMessage[9:10])
+                print(header,noise)
+       
+                print("bin data received")
+                with open("received_file_withreply", "wb") as output_file:
+                    print("writing the file back to the disk!")
+                    output_file.write(bytes(payload,'utf-8'))
+                print(bytes(payload,'utf-8').decode('utf-8'))
+                print(codecs.decode(bytes(payload,'utf-8')))
             
 
             recipient = received_data['sender']
@@ -123,6 +147,8 @@ class Serve:
             print(f"-> Got {received_message}")
 
         except (IndexError, KeyError, json.JSONDecodeError) as e:
+            traceback.print_exc()
+
             if recipient is not None:
                 err_msg = f"Error parsing message: {e}"
                 print(err_msg)
