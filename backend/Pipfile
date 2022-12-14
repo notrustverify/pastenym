@@ -8,8 +8,6 @@ peewee = "3.15.3"
 python-dotenv = "0.21.0"
 websocket-client = "1.4.1"
 rel = "*"
-pillow = "*"
-bson = "*"
 
 [dev-packages]
 
