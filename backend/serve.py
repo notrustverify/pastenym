@@ -1,4 +1,3 @@
-import asyncio
 import json
 import websocket
 from pasteNym import PasteNym
@@ -6,6 +5,7 @@ import utils
 import rel
 from datetime import datetime
 import traceback
+
 
 self_address_request = json.dumps({
     "type": "selfAddress"
@@ -104,25 +104,29 @@ class Serve:
             return
 
         kindReceived = bytes(received_message['message'][0:8], 'utf-8')[0:1]
-        
+
         # we received the data in a json
         try:
-            # received data with padding, start at the
+            # received data with padding, start at the 9th bytes
             payload = received_message['message'][9:]
-            received_data = json.loads(payload)
 
             if kindReceived == NYM_KIND_TEXT:
-                pass
+                received_data = json.loads(payload)
             elif kindReceived == NYM_KIND_BINARY:
-                pass
-            
+                print("bin data received. Don't know what to do")
+                return
 
             recipient = received_data['sender']
             event = received_data['event']
             data = received_data['data']
-            print(f"-> Got {received_message}")
+            if utils.DEBUG:
+                print(f"-> Got {received_message}")
+            else:
+                print(f"-> Got {event} from {recipient}")
 
         except (IndexError, KeyError, json.JSONDecodeError) as e:
+            traceback.print_exc()
+
             if recipient is not None:
                 err_msg = f"Error parsing message: {e}"
                 print(err_msg)
@@ -140,8 +144,12 @@ class Serve:
                 reply = self.getText(recipient, data)
             else:
                 reply = f"Error event {event} not found"
+            
+            if utils.DEBUG:
+                print(f"-> Rcv {event} - answers {reply} over the mix network.")
+            else:
+                print(f"-> Rcv {event} - answers to {recipient} over the mix network.")
 
-            print(f"-> Rcv {event} - answers {reply} over the mix network.")
             self.ws.send(reply)
         else:
             print(f"No recipient found in message {received_message}")

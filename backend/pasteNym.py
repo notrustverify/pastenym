@@ -97,8 +97,9 @@ class PasteNym:
                     retreivedText = self.db.getTextByUrlId(urlId)
                     
                     if retreivedText:
-                        retreivedText["encParams"] = json.loads(base64.b64decode(retreivedText["encryption_params_b64"]).decode("utf-8"))
-                        del retreivedText["encryption_params_b64"]
+                        if retreivedText.get("encryption_params_b64"):
+                            retreivedText["encParams"] = json.loads(base64.b64decode(retreivedText["encryption_params_b64"]).decode("utf-8"))
+                            del retreivedText["encryption_params_b64"]
                         return retreivedText
 
             except KeyError as e :
