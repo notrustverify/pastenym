@@ -8,7 +8,7 @@ load_dotenv()
 ID_LENGTH = 6
 NYM_CLIENT_ADDR = os.getenv("NYM_CLIENT_ADDR",'127.0.0.1')
 PASTE_MAX_LENGTH = 10**100 #very big limit because right now we accept file
-DEBUG = os.getenv("DEBUG",False)
+DEBUG = os.getenv("DEBUG",'False').lower() in ('true', '1', 't')
 
 
 def generateRandomString(length):
