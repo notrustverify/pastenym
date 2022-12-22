@@ -14,12 +14,10 @@ class IPFS:
         pass
 
     def storeData(self,data):
-        url = f"http://localhost:5001/api/v0/add"
-
         # at first get only get hash file because we use this as the name
         with StringIO(data) as f:
             try:
-                response = requests.post(f"{utils.IPFS_HOST}/add", files={"file": f.read()},params={'cid-version':1,"only-hash":1})
+                response = requests.post(f"{utils.IPFS_API}/add", files={"file": f.read()},params={'cid-version':1,"only-hash":1})
             except requests.RequestException as e:
                 print(f"Error for getting hash {e}")
                 return None
@@ -31,7 +29,7 @@ class IPFS:
 
         with StringIO(data) as f:
             try:
-                response = requests.post(f"{utils.IPFS_HOST}/add", files={f"{hashFile}": f.read()},params={'cid-version':1})
+                response = requests.post(f"{utils.IPFS_API}/add", files={f"{hashFile}": f.read()},params={'cid-version':1})
 
                 if not response.ok:
                     return None
@@ -47,7 +45,7 @@ class IPFS:
 
     def getData(self,hash):
         try:
-            response = requests.post(f"{utils.IPFS_HOST}/cat",params={'arg':hash})
+            response = requests.post(f"{utils.IPFS_API}/cat",params={'arg':hash})
             if response.ok:
                 return response.content.decode()
             else:
