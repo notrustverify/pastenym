@@ -4,6 +4,7 @@ import utils
 import html
 import json
 import base64
+import ipfsHandler
 from utils import isBase64
 
 class PasteNym:
@@ -11,6 +12,8 @@ class PasteNym:
     def __init__(self, idLength=utils.ID_LENGTH):
         self.idLength = idLength
         self.db = db.BaseModel()
+        self.ipfsClient = ipfsHandler.IPFS()
+
 
     def newText(self, data):
         if len(data) <= 0:
@@ -37,6 +40,11 @@ class PasteNym:
             burn=False
             if data.get('burn') and type(data.get('burn')) == bool:
                 burn = data.get('burn')
+
+            # by default the pastes are not uploaded to IPFS
+            ipfs = False
+            if data.get('ipfs') and type(data.get('ipfs')) == bool:
+                ipfs = data.get('ipfs')
 
             # by default encryption is not mandatory
             encParamsB64=None
@@ -78,9 +86,14 @@ class PasteNym:
                     print("Provided encryption parameters are not valid")
                     return None
 
-            return self.db.insertText(html.escape(text), urlId, encParamsB64, private, burn)
+            # if ipfs is used we have to get the hash that represent the paste on IPFS
+            if ipfs:
+                text = self.ipfsClient.storeData(text)
+
+
+            return self.db.insertText(html.escape(text), urlId, encParamsB64, private, burn,ipfs)
         
-        except KeyError as e:
+        except (KeyError,AttributeError) as e:
             print(f"Key not found in newText data: {e}")
             return None
 
@@ -95,11 +108,25 @@ class PasteNym:
                 if data.get('urlId') and type(data.get('urlId')) == str:
                     urlId = data.get('urlId').strip()
                     retreivedText = self.db.getTextByUrlId(urlId)
-                    
+
                     if retreivedText:
                         if retreivedText.get("encryption_params_b64"):
                             retreivedText["encParams"] = json.loads(base64.b64decode(retreivedText["encryption_params_b64"]).decode("utf-8"))
                             del retreivedText["encryption_params_b64"]
+
+                        if retreivedText.get('is_ipfs'):
+                            try:
+                                dataFromIpfs = self.ipfsClient.getData(retreivedText['text'])
+
+                                if dataFromIpfs is not None:
+                                    retreivedText['text'] = dataFromIpfs
+                                else:
+                                    return None
+
+                            except KeyError:
+                                print("this shouldn't happen")
+                                return None
+
                         return retreivedText
 
             except KeyError as e :

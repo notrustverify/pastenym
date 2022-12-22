@@ -1,6 +1,7 @@
 from serve import Serve
 import db
 from os.path import exists
+import ipfsHandler
 
 if __name__ == '__main__':
 
@@ -10,3 +11,5 @@ if __name__ == '__main__':
 
     # init and start the backend server
     serveClient = Serve()
+
+

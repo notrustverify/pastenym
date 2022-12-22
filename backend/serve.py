@@ -2,9 +2,10 @@ import json
 import websocket
 from pasteNym import PasteNym
 import utils
-import rel
 from datetime import datetime
 import traceback
+import ipfsHandler
+import rel
 
 
 self_address_request = json.dumps({
@@ -44,7 +45,6 @@ class Serve:
         url = f"ws://{utils.NYM_CLIENT_ADDR}:1977"
         self.firstRun = True
         self.pasteNym = PasteNym()
-
         websocket.enableTrace(False)
         self.ws = websocket.WebSocketApp(url,
                                          on_message=lambda ws, msg: self.on_message(
@@ -164,7 +164,12 @@ class Serve:
                 if urlId is not None:
                     try:
                         if len(urlId) > 0:
-                            reply_message = urlId[0].get('url_id')
+                            reply_message = {"ipfs": False}
+                            if urlId[0].get('is_ipfs'):
+                                reply_message['ipfs'] = urlId[0].get('is_ipfs')
+                                reply_message.update({"hash": urlId[0].get('text')})
+
+                            reply_message.update({ "url_id": urlId[0].get('url_id')})
                         else:
                             reply_message = "Error"
                     except IndexError as e:
@@ -177,7 +182,7 @@ class Serve:
         else:
             reply_message = "Message has no text!"
 
-        return Serve.createPayload(recipient, reply_message)
+        return Serve.createPayload(recipient, json.dumps(reply_message))
 
     def getText(self, recipient, message):
         text = self.pasteNym.getTextById(message)
