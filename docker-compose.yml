@@ -24,3 +24,22 @@ services:
        - ./nym-client/nym-data/:/home/user/.nym/
     depends_on:
       - pastenym-backend
+
+  ipfs:
+    image: ipfs/kubo:latest
+    restart: unless-stopped
+    volumes:
+      - ./backend/ipfs/data:/data/ipfs
+      - ./backend/ipfs/ipfs_fuse:/ipfs
+      - ./backend/ipfs/ipns_fuse:/ipns
+    environment:
+      - IPFS_PATH=/data/ipfs
+    ports:
+      # Swarm listens on all interfaces, so is remotely reachable.
+      - 4001:4001/tcp
+      - 4001:4001/udp
+      # API port, which includes admin operations, so you probably don't want this remotely accessible.
+      - 127.0.0.1:5001:5001
+      # HTTP Gateway
+      - 127.0.0.1:8080:8080
+

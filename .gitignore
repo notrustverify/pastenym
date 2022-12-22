@@ -1,7 +1,15 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,nextjs,node,pycharm+all
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,nextjs,node,pycharm+all
 
+
+backend/ipfs/data
+backend/ipfs/ipfs_fuse
+backend/ipfs/ipns_fuse
+.idea
+env.docker
+
 ### NextJS ###
+
 # Dependencies
 node_modules
 .pnp

@@ -30,19 +30,20 @@ class BaseModel(Model):
         try:
             with database.atomic():
                 return Text.get_or_none(Text.url_id == id)
-        except (IntegrityError, DoesNotExists) as e:
+        except (IntegrityError, DoesNotExist) as e:
             logHandler.exception(e)
             return False
         finally:
             self.close()
 
-    def insertText(self, text, url_id, enc_params_b64, private=True, burn=False):
+    def insertText(self, text, url_id, enc_params_b64, private=True, burn=False,ipfs=False):
         self.connect()
 
         try:
             with database.atomic():
                 idInsert = Text.insert(
                     text=text,
+                    is_ipfs=ipfs,
                     encryption_params_b64=enc_params_b64,
                     url_id=url_id,
                     is_private=private,
@@ -71,6 +72,7 @@ class BaseModel(Model):
                                    Text.num_view,
                                    Text.created_on,
                                    Text.is_burn,
+                                   Text.is_ipfs,
                                    Text.encryption_params_b64
                                    ).where(Text.url_id == url_id).dicts()
 
@@ -105,6 +107,7 @@ class Text(BaseModel):
         db_table = 'texts'
 
     text = TextField()
+    is_ipfs = BooleanField(default=False,null=True)
     # Setting url_id as index allows faster operations
     url_id = TextField(index=True)
     expiration_time = TimestampField(null=True)
@@ -114,6 +117,7 @@ class Text(BaseModel):
     num_view = IntegerField(default=0)
     is_private = BooleanField(null=True)
     is_burn = BooleanField(null=True)  # burn after reading paste
+
 
     created_on = DateTimeField(default=datetime.utcnow)
     updated_on = DateTimeField(default=datetime.utcnow)
