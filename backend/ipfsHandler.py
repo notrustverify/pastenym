@@ -8,7 +8,9 @@ class IPFS:
 
     def __init__(self):
         self.ipfsApi = f"http://{utils.IPFS_HOST}:5001/api/v0"
-        self.ipfsClusterApi = f"http://{utils.IPFS_CLUSTER_HOST}:9094"
+        
+        if utils.IPFS_CLUSTER_HOST is not None:
+            self.ipfsClusterApi = f"http://{utils.IPFS_CLUSTER_HOST}:9094"
 
     def storeData(self,data):
         # at first get only get hash file because we use this as the name
