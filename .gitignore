@@ -7,6 +7,7 @@ backend/ipfs/ipfs_fuse
 backend/ipfs/ipns_fuse
 .idea
 env.docker
+docker-compose.yml
 
 ### NextJS ###
 
