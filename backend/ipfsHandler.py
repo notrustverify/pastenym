@@ -13,13 +13,11 @@ class IPFS:
     def __init__(self):
         self.ipfsApi = f"http://{utils.IPFS_HOST}:5001/api/v0"
 
-
     def storeData(self,data):
         # at first get only get hash file because we use this as the name
         with StringIO(data) as f:
             try:
                 response = requests.post(f"{self.ipfsApi}/add", files={"file": f.read()},params={'cid-version':1,"only-hash":1})
-
 
             except requests.RequestException as e:
                 print(f"Error for getting hash {e}")
@@ -44,6 +42,7 @@ class IPFS:
     def getData(self,hash):
         try:
             response = requests.post(f"{self.ipfsApi}/cat",params={'arg':hash})
+
             if response.ok:
                 return response.content.decode()
             else:
