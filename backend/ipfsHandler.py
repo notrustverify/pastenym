@@ -8,6 +8,7 @@ class IPFS:
 
     def __init__(self):
         self.ipfsApi = f"http://{utils.IPFS_HOST}:5001/api/v0"
+        self.ipfsClusterApi = f"http://{utils.IPFS_CLUSTER_HOST}:9094"
 
     def storeData(self,data):
         # at first get only get hash file because we use this as the name
@@ -26,6 +27,18 @@ class IPFS:
                 f.seek(0)
                 response = requests.post(f"{self.ipfsApi}/add", files={f"{hashFile}": f.read()},
                                          params={'cid-version': 1})
+
+                # will have to add file directly from cluster, but cid-version 1 seems not available
+                if utils.IS_IPFS_CLUSTER:
+                    try:
+                        response = requests.post(f"{self.ipfsClusterApi}/pins/ipfs/{hashFile}",
+                                                 params={"mode": "recursive"})
+                        if not response.ok:
+                            print(f"Error with cluster pinning, {response.content}")
+
+                    except requests.RequestException as e:
+                        print(f"Error with cluster pinning, {e}")
+
                 if not response.ok:
                     return None
             else:
