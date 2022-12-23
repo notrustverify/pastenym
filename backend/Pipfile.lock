@@ -1,7 +1,6 @@
 {
     "_meta": {
         "hash": {
-
             "sha256": "6a2c244b79493e0988c4230ef2fdec8763037817de788bf88f53abb376797108"
         },
         "pipfile-spec": 6,
@@ -32,7 +31,6 @@
             ],
             "markers": "python_full_version >= '3.6.0'",
             "version": "==2.1.1"
-
         },
         "idna": {
             "hashes": [
