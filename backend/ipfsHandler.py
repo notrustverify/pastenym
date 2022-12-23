@@ -29,7 +29,7 @@ class IPFS:
                                          params={'cid-version': 1})
 
                 # will have to add file directly from cluster, but cid-version 1 seems not available
-                if utils.IS_IPFS_CLUSTER:
+                if utils.IPFS_CLUSTER_HOST is not None:
                     try:
                         response = requests.post(f"{self.ipfsClusterApi}/pins/ipfs/{hashFile}",
                                                  params={"mode": "recursive"})

@@ -11,8 +11,7 @@ PASTE_MAX_LENGTH = 10**100 #very big limit because right now we accept file
 DEBUG = bool(os.getenv("DEBUG",'False').lower() in ('true', '1', 't'))
 
 IPFS_HOST=os.getenv("IPFS_HOST","localhost")
-IPFS_CLUSTER_HOST=os.getenv("IPFS_CLUSTER_HOST","localhost")
-IS_IPFS_CLUSTER=bool(os.getenv("IS_IPFS_CLUSTER",'False').lower() in ('true', '1', 't'))
+IPFS_CLUSTER_HOST=os.getenv("IPFS_CLUSTER_HOST",None)
 def generateRandomString(length):
     return token_urlsafe(nbytes=length)
 
