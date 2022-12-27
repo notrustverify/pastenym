@@ -21,8 +21,10 @@ class PasteNym:
 
         try:
             # text is a mandatory field
-            if data.get('text') and (type(data.get('text')) == str or type(data.get('text')) == dict):
-                text = str(data.get('text'))
+            if data.get('text') and type(data.get('text')) == str:
+                text = data.get('text')
+            elif data.get('text') and type(data.get('text')) == dict:
+                text = json.dumps(data.get('text'))
             else:
                 print("Error with paste content")
                 return None
@@ -99,7 +101,7 @@ class PasteNym:
             # if ipfs is used we have to get the hash that represent the paste on IPFS
             if ipfs:
                 text = self.ipfsClient.storeData(text)
-
+            
             return self.db.insertText(html.escape(text), urlId, encParamsB64, private, burn, ipfs)
 
         except (KeyError, AttributeError) as e:

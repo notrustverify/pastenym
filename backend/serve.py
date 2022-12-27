@@ -132,6 +132,7 @@ class Serve:
             recipient = received_data['sender']
             event = received_data['event']
             data = received_data['data']
+
             if utils.DEBUG:
                 print(f"-> Got {received_message}")
             else:
