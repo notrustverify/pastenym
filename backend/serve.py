@@ -115,6 +115,9 @@ class Serve:
             elif kindReceived == NYM_KIND_BINARY:
                 print("bin data received. Don't know what to do")
                 return
+            else:
+                print("no message kind received. Don't know what to do")
+                return
 
             recipient = received_data['sender']
             event = received_data['event']

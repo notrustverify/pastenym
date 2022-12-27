@@ -39,7 +39,7 @@ class IPFS:
                 return None
 
         # will have to add file directly from cluster, but cid-version 1 seems not available
-        
+
         if utils.IPFS_CLUSTER_HOST is not None:
             try:
                 response = requests.post(f"{self.ipfsClusterApi}/pins/ipfs/{hashFile}",
