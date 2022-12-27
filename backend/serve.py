@@ -1,3 +1,4 @@
+import base64
 import json
 import websocket
 from pasteNym import PasteNym
@@ -103,7 +104,16 @@ class Serve:
             print(f"Unicode error, nothing to do about: {e}")
             return
 
-        kindReceived = bytes(received_message['message'][0:8], 'utf-8')[0:1]
+        try:
+            if utils.isBase64(received_message['message']):
+                received_message['message'] = base64.b64decode(received_message['message'])
+                kindReceived = received_message['message'][0:8][0:1]
+            else:
+                kindReceived = bytes(received_message['message'][0:8], 'utf-8')[0:1]
+        except IndexError as e:
+            print(f"Error getting message kind, {e}")
+            traceback.print_exc()
+            return
 
         # we received the data in a json
         try:
@@ -128,15 +138,16 @@ class Serve:
                 print(f"-> Got {event} from {recipient}")
 
         except (IndexError, KeyError, json.JSONDecodeError) as e:
-            traceback.print_exc()
-
             if recipient is not None:
                 err_msg = f"Error parsing message: {e}"
                 print(err_msg)
                 reply_message = err_msg
-                Serve.createPayload(recipient, reply_message)
+                self.ws.send(Serve.createPayload(recipient, reply_message))
+                print(f"send error message, data received {message}")
+                return
             else:
                 print(f"No recipient found in message {received_message}")
+                return None
 
         reply = ""
 
