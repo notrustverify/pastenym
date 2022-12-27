@@ -101,7 +101,7 @@ class PasteNym:
             # if ipfs is used we have to get the hash that represent the paste on IPFS
             if ipfs:
                 text = self.ipfsClient.storeData(text)
-            
+
             return self.db.insertText(html.escape(text), urlId, encParamsB64, private, burn, ipfs)
 
         except (KeyError, AttributeError) as e:
@@ -112,10 +112,16 @@ class PasteNym:
 
         if len(data) >= 1:
             if len(data) > 1:
-                print(
-                    f"{data[0].get('urlId')} has {len(data)} associated texts.. This should not happen.. Return the first one",
-                    file=sys.stderr)
-                data = data[0]
+
+                try:
+                    print(
+                        f"{data[0].get('urlId')} has {len(data)} associated texts.. This should not happen.. Return the first one",
+                        file=sys.stderr)
+                    data = data[0]
+                except (KeyError,IndexError) as e:
+                    print("This shouldn't happen too")
+                    return None
+
 
             try:
                 if data.get('urlId') and (type(data.get('urlId')) == str or type(data.get('urlId')) == dict):
