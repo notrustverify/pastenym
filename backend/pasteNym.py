@@ -49,8 +49,14 @@ class PasteNym:
             if 'encParams' in data.keys() and data.get('encParams') and type(data.get('encParams')) == dict:
                 encParams = data.get('encParams')
 
+
+
                 def areEncParamsOk(encParams):
                     thingThatIsWrong = ""
+                    # if everything is empty consider public
+                    if len(encParams.get('iv')) == 0 and len(encParams.get('salt')) == 0 and len(
+                            encParams.get('adata')) == 0:
+                        return 0 == len(thingThatIsWrong)
 
                     if not encParams.get('iv') or type(encParams.get('iv')) != str or not isBase64(
                             encParams.get('iv')) or 16 != len(base64.b64decode(encParams.get('iv'))):
