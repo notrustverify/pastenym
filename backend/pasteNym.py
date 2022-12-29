@@ -21,10 +21,8 @@ class PasteNym:
 
         try:
             # text is a mandatory field
-            if data.get('text') and type(data.get('text')) == str:
-                text = data.get('text')
-            elif data.get('text') and type(data.get('text')) == dict:
-                text = json.dumps(data.get('text'))
+            if data.get('text') and (type(data.get('text')) == str or type(data.get('text')) == dict):
+                text = str(data.get('text'))
             else:
                 print("Error with paste content")
                 return None
@@ -49,17 +47,10 @@ class PasteNym:
             if 'encParams' in data.keys() and data.get('encParams') and type(data.get('encParams')) == dict:
                 encParams = data.get('encParams')
 
-
-
                 def areEncParamsOk(encParams):
                     thingThatIsWrong = ""
-                    # if everything is empty consider public
-                    if len(encParams.get('iv')) == 0 and len(encParams.get('salt')) == 0 and len(
-                            encParams.get('adata')) == 0:
-                        return 0 == len(thingThatIsWrong)
 
-                    if not encParams.get('iv') or type(encParams.get('iv')) != str or not isBase64(
-                            encParams.get('iv')) or 16 != len(base64.b64decode(encParams.get('iv'))):
+                    if not encParams.get('iv') or type(encParams.get('iv')) != str or not isBase64(encParams.get('iv')):
                         thingThatIsWrong = "iv"
                     elif not encParams.get('v') or type(encParams.get('v')) != int:
                         thingThatIsWrong = "v"
@@ -74,7 +65,7 @@ class PasteNym:
                                                                                                                     128]:
                         thingThatIsWrong = "ts"
                     elif not encParams.get('mode') or type(encParams.get('mode')) != str or encParams.get(
-                            'mode') not in ['ccm', 'ocb2']:
+                            'mode') not in ['ccm', 'ocb2','gcm']:
                         thingThatIsWrong = "mode"
                     # adata field is supposed to be empty so should not be "get"
                     elif encParams.get('adata') or type(encParams.get('adata')) != str or 0 != len(
@@ -118,16 +109,10 @@ class PasteNym:
 
         if len(data) >= 1:
             if len(data) > 1:
-
-                try:
-                    print(
-                        f"{data[0].get('urlId')} has {len(data)} associated texts.. This should not happen.. Return the first one",
-                        file=sys.stderr)
-                    data = data[0]
-                except (KeyError,IndexError) as e:
-                    print("This shouldn't happen too")
-                    return None
-
+                print(
+                    f"{data[0].get('urlId')} has {len(data)} associated texts.. This should not happen.. Return the first one",
+                    file=sys.stderr)
+                data = data[0]
 
             try:
                 if data.get('urlId') and (type(data.get('urlId')) == str or type(data.get('urlId')) == dict):
