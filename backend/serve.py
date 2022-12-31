@@ -182,7 +182,7 @@ class Serve:
                             reply_message = {"ipfs": False}
                             if urlId[0].get('is_ipfs'):
                                 reply_message['ipfs'] = urlId[0].get('is_ipfs')
-                                reply_message.update({"hash": urlId[0].get('text')})
+                                reply_message.update({"hash": urlId[0].get('url_id')})
 
                             reply_message.update({ "url_id": urlId[0].get('url_id')})
                         else:
@@ -206,8 +206,12 @@ class Serve:
             if text is not None:
 
                 # append a Z to be in iso format that JS Date can understand
-                text['created_on'] = datetime.isoformat(
-                    text.get('created_on'))+'Z'
+                createdOn = text.get('created_on')
+                if type(createdOn) == str:
+                    datetime.strptime(createdOn,"%Y-%m-%dT%H:%M:%S.%f")
+                else:
+                    text['created_on'] = datetime.isoformat(
+                    createdOn)+'Z'
                 reply_message = json.dumps(text, default=str)
 
             else:

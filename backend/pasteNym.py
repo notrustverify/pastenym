@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import db
 import sys
 import utils
@@ -47,82 +49,63 @@ class PasteNym:
             if 'encParams' in data.keys() and data.get('encParams') and type(data.get('encParams')) == dict:
                 encParams = data.get('encParams')
 
-
-                def areEncParamsOk(encParams):
-                    thingThatIsWrong = ""
-
-                    # consider it as public
-                    if encParams.get('iv') == "" and encParams.get('adata') == "" and encParams.get('salt') == "":
-                        return 0 == len(thingThatIsWrong)
-
-                    if not encParams.get('iv') or type(encParams.get('iv')) != str or not isBase64(encParams.get('iv')):
-                        thingThatIsWrong = "iv"
-                    elif not encParams.get('v') or type(encParams.get('v')) != int:
-                        thingThatIsWrong = "v"
-                    elif not encParams.get('iter') or type(encParams.get('iter')) != int:
-                        thingThatIsWrong = "iter"
-                    elif not encParams.get('ks') or type(encParams.get('ks')) != int or encParams.get('ks') not in [128,
-                                                                                                                    192,
-                                                                                                                    256]:
-                        thingThatIsWrong = "ks"
-                    elif not encParams.get('ts') or type(encParams.get('ts')) != int or encParams.get('ts') not in [64,
-                                                                                                                    96,
-                                                                                                                    128]:
-                        thingThatIsWrong = "ts"
-                    elif not encParams.get('mode') or type(encParams.get('mode')) != str or encParams.get(
-                            'mode') not in ['ccm', 'ocb2','gcm']:
-                        thingThatIsWrong = "mode"
-                    # adata field is supposed to be empty so should not be "get"
-                    elif encParams.get('adata') or type(encParams.get('adata')) != str or 0 != len(
-                            encParams.get('adata')):
-                        thingThatIsWrong = "adata"
-                    elif not encParams.get('cipher') or type(encParams.get('cipher')) != str or encParams.get(
-                            'cipher') not in ['aes']:
-                        thingThatIsWrong = "cipher"
-                    elif not encParams.get('salt') or type(encParams.get('salt')) != str or not isBase64(
-                            encParams.get('salt')) or 8 != len(base64.b64decode(encParams.get('salt'))):
-                        thingThatIsWrong = "salt"
-
-                    if 0 != len(thingThatIsWrong):
-                        print(f"Encryption params have wrong {thingThatIsWrong}")
-
-                    return 0 == len(thingThatIsWrong)
-
                 # We check that the provided params are of right types and string length (to avoid storing other undesired values)
-                if areEncParamsOk(encParams):
-                    encParamsB64 = base64.b64encode(json.dumps(encParams).encode("utf-8"))
+                encParamOk, private = utils.areEncParamsOk(encParams)
+                if encParamOk:
+                    encParamsB64 = str(base64.b64encode(json.dumps(encParams).encode("utf-8")),'utf-8')
                 else:
                     print("Provided encryption parameters are not valid")
                     return None
 
-            urlId = utils.generateRandomString(self.idLength)
+            # if ipfs is used we have to get the hash that represent the paste on IPFS
+            if ipfs and private:
+                toStore = {'text': html.escape(text), 'encryption_params_b64': encParamsB64, 'is_private': private,
+                        'is_burn': burn,'is_ipfs': ipfs,"created_on":datetime.isoformat(datetime.utcnow())}
 
-            while self.db.idExists(urlId) is not None:
+                ipfsCID = self.ipfsClient.storeData(json.dumps(toStore))
+
+                if ipfsCID is None:
+                    print("Error with IPFS")
+                    return None
+
+                return [{'url_id': ipfsCID, 'is_private': private,
+                         'is_burn': burn, 'is_ipfs': ipfs, 'hash': ipfsCID}]
+            elif ipfs and not private:
+                print("Public share on IPFS are not authorized")
+                return None
+            elif not ipfs:
                 urlId = utils.generateRandomString(self.idLength)
 
-            # if ipfs is used we have to get the hash that represent the paste on IPFS
-            if ipfs:
-                text = self.ipfsClient.storeData(text)
+                while self.db.idExists(urlId) is not None:
+                    urlId = utils.generateRandomString(self.idLength)
 
-            return self.db.insertText(html.escape(text), urlId, encParamsB64, private, burn, ipfs)
+                return self.db.insertText(html.escape(text), urlId, encParamsB64, private, burn, ipfs)
+
 
         except (KeyError, AttributeError) as e:
             print(f"Key not found in newText data: {e}")
             return None
 
-    def getTextById(self, data):
 
+    def getTextById(self, data):
         if len(data) >= 1:
-            if len(data) > 1:
-                print(
-                    f"{data[0].get('urlId')} has {len(data)} associated texts.. This should not happen.. Return the first one",
-                    file=sys.stderr)
-                data = data[0]
 
             try:
                 if data.get('urlId') and (type(data.get('urlId')) == str or type(data.get('urlId')) == dict):
+
                     urlId = data.get('urlId').strip()
-                    retreivedText = self.db.getTextByUrlId(urlId)
+                    retreivedText = None
+
+                    if utils.isIpfsCID(urlId):
+                        try:
+                            ipfsData = self.ipfsClient.getData(urlId)
+                            if ipfsData:
+                                retreivedText = json.loads(ipfsData)
+                        except json.JSONDecodeError as e:
+                            print(f"error with decoding JSON from IPFS, {e}")
+                            return None
+                    else:
+                        retreivedText = self.db.getTextByUrlId(urlId)
 
                     if retreivedText:
                         if retreivedText.get("encryption_params_b64"):
@@ -132,13 +115,14 @@ class PasteNym:
 
                         if retreivedText.get('is_ipfs'):
                             try:
+                                '''
                                 dataFromIpfs = self.ipfsClient.getData(retreivedText['text'])
 
                                 if dataFromIpfs is not None:
                                     retreivedText['text'] = dataFromIpfs
                                 else:
                                     return None
-
+                                '''
                             except KeyError:
                                 print("this shouldn't happen")
                                 return None
