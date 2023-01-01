@@ -113,16 +113,16 @@ class PasteNym:
                                 base64.b64decode(retreivedText["encryption_params_b64"]).decode("utf-8"))
                             del retreivedText["encryption_params_b64"]
 
-                        if retreivedText.get('is_ipfs'):
+                        if retreivedText.get('is_ipfs') and not utils.isIpfsCID(urlId):
                             try:
-                                '''
+
                                 dataFromIpfs = self.ipfsClient.getData(retreivedText['text'])
 
                                 if dataFromIpfs is not None:
                                     retreivedText['text'] = dataFromIpfs
                                 else:
                                     return None
-                                '''
+
                             except KeyError:
                                 print("this shouldn't happen")
                                 return None

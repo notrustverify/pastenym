@@ -207,9 +207,10 @@ class Serve:
 
                 # append a Z to be in iso format that JS Date can understand
                 createdOn = text.get('created_on')
+                print(createdOn)
                 if type(createdOn) == str:
                     datetime.strptime(createdOn,"%Y-%m-%dT%H:%M:%S.%f")
-                else:
+                elif createdOn is not None:
                     text['created_on'] = datetime.isoformat(
                     createdOn)+'Z'
                 reply_message = json.dumps(text, default=str)
