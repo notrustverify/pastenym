@@ -52,6 +52,18 @@ It uses [pipenv](https://pipenv.pypa.io/en/latest/install/)
 
 If you wish to contribute to the project, you will need to run the Nym client and Backend as explained in the Init part above AND run a local frontend.
 
+## Donate
+
+If you enjoy pastenym, please consider buying us a cup of coffee. We worked hard to make it free and plan to spend alot of time supporting it. Donations are greatly appreciated.
+
+BTC: `bc1q5j4tq0yr75j90xwegwtfpaccdx3xdaxxzjtzt8`
+
+
+*The best way to support us is by delegated NYM to our nodes*
+* No Trust Verify 2 `4yRfauFzZnejJhG2FACTVQ7UnYEcFUYw3HzXrmuwLMaR`
+* No Trust Verify 1 `APxUbCmGp4K9qDzvwVADJFNu8S3JV1AJBw7q6bS5KN9E`
+
+
 ### Frontend
 NodeJS (`v16.13.1`) and NPM (`v9.20.0`) are used for the frontend.
 
