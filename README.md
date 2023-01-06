@@ -56,7 +56,9 @@ If you wish to contribute to the project, you will need to run the Nym client an
 
 If you enjoy pastenym, please consider buying us a cup of coffee. We worked hard to make it free and plan to spend alot of time supporting it. Donations are greatly appreciated.
 
-BTC: `bc1q5j4tq0yr75j90xwegwtfpaccdx3xdaxxzjtzt8`
+* BTC: `bc1q5j4tq0yr75j90xwegwtfpaccdx3xdaxxzjtzt8`
+* XMR: `48iCVNX1G2B7W2nAQQAEFW9Q8f3dbURekCGPdVYiNj6Xa8ur5Qpg6SXUHB4LyQqc4tBurtNr2NiavKgqX9tZSeK9GePGwj6`
+
 
 
 *The best way to support us is by delegated NYM to our nodes*
