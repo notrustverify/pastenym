@@ -60,7 +60,7 @@ class PasteNym:
             # if ipfs is used we have to get the hash that represent the paste on IPFS
             if ipfs and private:
                 toStore = {'text': html.escape(text), 'encryption_params_b64': encParamsB64, 'is_private': private,
-                        'is_burn': burn,'is_ipfs': ipfs,"created_on":datetime.isoformat(datetime.utcnow())}
+                        'is_burn': burn,'is_ipfs': ipfs,"created_on":datetime.isoformat(datetime.utcnow().replace(hour=0,minute=0,second=0,microsecond=0))}
 
                 ipfsCID = self.ipfsClient.storeData(json.dumps(toStore))
 

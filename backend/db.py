@@ -118,9 +118,9 @@ class Text(BaseModel):
     is_private = BooleanField(null=True)
     is_burn = BooleanField(null=True)  # burn after reading paste
 
-
-    created_on = DateTimeField(default=datetime.utcnow)
-    updated_on = DateTimeField(default=datetime.utcnow)
+    dayTimeNow = datetime.utcnow().replace(hour=0,minute=0,second=0,microsecond=0)
+    created_on = DateTimeField(default=dayTimeNow)
+    updated_on = DateTimeField(default=dayTimeNow)
 
 
 def create_tables():
