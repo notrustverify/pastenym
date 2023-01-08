@@ -209,7 +209,7 @@ class Serve:
                 createdOn = text.get('created_on')
 
                 if type(createdOn) == str:
-                    text['created_on'] = datetime.strptime(createdOn,"%Y-%m-%dT%H:%M:%S.%f")
+                    text['created_on'] = datetime.strptime(createdOn,"%Y-%m-%dT%H:%M:%S")
                 elif createdOn is not None:
                     text['created_on'] = datetime.isoformat(
                     createdOn)+'Z'
