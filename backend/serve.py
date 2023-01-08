@@ -209,10 +209,9 @@ class Serve:
                 createdOn = text.get('created_on')
 
                 if type(createdOn) == str:
-                    try:
-                        text['created_on'] = datetime.strptime(createdOn,"%Y-%m-%dT%H:%M:%S")
-                    except ValueError as e:
-                        text['created_on'] = datetime.strptime(createdOn, "%Y-%m-%dT%H:%M:%S.%f")
+
+                    # remove the microseconds
+                    text['created_on'] = datetime.strptime(createdOn.split(".")[0],"%Y-%m-%dT%H:%M:%S")
 
                 elif createdOn is not None:
                     text['created_on'] = datetime.isoformat(
