@@ -39,6 +39,11 @@ class PasteNym:
             if data.get('burn') and type(data.get('burn')) == bool:
                 burn = data.get('burn')
 
+                if data.get('burn_view') and type(data.get('burn_view')) == int and data.get('burn_view') <= 10000 :
+                    burn_view = data.get('burn_view')
+                else:
+                    burn_view = 1
+
             # by default the pastes are not uploaded to IPFS
             ipfs = False
             if data.get('ipfs') and type(data.get('ipfs')) == bool:
@@ -52,7 +57,7 @@ class PasteNym:
                 # We check that the provided params are of right types and string length (to avoid storing other undesired values)
                 encParamOk, private = utils.areEncParamsOk(encParams)
                 if encParamOk:
-                    encParamsB64 = str(base64.b64encode(json.dumps(encParams).encode("utf-8")),'utf-8')
+                    encParamsB64 = str(base64.b64encode(json.dumps(encParams).encode("utf-8")), 'utf-8')
                 else:
                     print("Provided encryption parameters are not valid")
                     return None
@@ -60,7 +65,8 @@ class PasteNym:
             # if ipfs is used we have to get the hash that represent the paste on IPFS
             if ipfs and private:
                 toStore = {'text': html.escape(text), 'encryption_params_b64': encParamsB64, 'is_private': private,
-                        'is_burn': burn,'is_ipfs': ipfs,"created_on":datetime.isoformat(datetime.utcnow().replace(hour=0,minute=0,second=0,microsecond=0))}
+                           'is_burn': burn, 'is_ipfs': ipfs, "created_on": datetime.isoformat(
+                        datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0))}
 
                 ipfsCID = self.ipfsClient.storeData(json.dumps(toStore))
 
@@ -79,13 +85,12 @@ class PasteNym:
                 while self.db.idExists(urlId) is not None:
                     urlId = utils.generateRandomString(self.idLength)
 
-                return self.db.insertText(html.escape(text), urlId, encParamsB64, private, burn, ipfs)
+                return self.db.insertText(html.escape(text), urlId, encParamsB64, burn_view, private, burn, ipfs)
 
 
         except (KeyError, AttributeError) as e:
             print(f"Key not found in newText data: {e}")
             return None
-
 
     def getTextById(self, data):
         if len(data) >= 1:
