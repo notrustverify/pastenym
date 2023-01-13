@@ -39,10 +39,11 @@ class PasteNym:
             if data.get('burn') and type(data.get('burn')) == bool:
                 burn = data.get('burn')
 
-                if data.get('burn_view') and type(data.get('burn_view')) == int and data.get('burn_view') <= 10000 :
+                if data.get('burn_view') and type(data.get('burn_view')) == int and 0 < data.get('burn_view') <= 10000 :
                     burn_view = data.get('burn_view')
                 else:
                     burn_view = 1
+
 
             # by default the pastes are not uploaded to IPFS
             ipfs = False
