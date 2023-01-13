@@ -36,7 +36,7 @@ class BaseModel(Model):
         finally:
             self.close()
 
-    def insertText(self, text, url_id, enc_params_b64, private=True, burn=False,ipfs=False):
+    def insertText(self, text, url_id, enc_params_b64, burn_view=0,private=True, burn=False, ipfs=False):
         self.connect()
 
         try:
@@ -47,7 +47,8 @@ class BaseModel(Model):
                     encryption_params_b64=enc_params_b64,
                     url_id=url_id,
                     is_private=private,
-                    is_burn=burn
+                    is_burn=burn,
+                    burn_view=burn_view
                 ).execute()
 
                 return list(Text.select().where(Text.id == idInsert).dicts())
@@ -73,6 +74,7 @@ class BaseModel(Model):
                                    Text.created_on,
                                    Text.is_burn,
                                    Text.is_ipfs,
+                                   Text.burn_view,
                                    Text.encryption_params_b64
                                    ).where(Text.url_id == url_id).dicts()
 
@@ -80,10 +82,11 @@ class BaseModel(Model):
                     retreivedText = data[0]
                     if retreivedText.get('is_burn'):
                         try:
-                            Text.delete().where(
-                                Text.id == retreivedText['id']).execute()
-                            print(
-                                f"Deleted text with id: {retreivedText['id']}")
+                            if  retreivedText.get('num_view') >= retreivedText.get('burn_view'):
+                                Text.delete().where(Text.id == retreivedText['id']).execute()
+
+                                print(
+                                    f"Deleted text with id: {retreivedText['id']}")
 
                         except (KeyError, IndexError) as e:
                             print(f"Error while deleting text {e}")
@@ -117,6 +120,7 @@ class Text(BaseModel):
     num_view = IntegerField(default=0)
     is_private = BooleanField(null=True)
     is_burn = BooleanField(null=True)  # burn after reading paste
+    burn_view = IntegerField(default=0) # burn after reading paste after seen n times
 
     dayTimeNow = datetime.utcnow().replace(hour=0,minute=0,second=0,microsecond=0)
     created_on = DateTimeField(default=dayTimeNow)
