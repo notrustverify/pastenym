@@ -1,2 +1,4 @@
 data/*.db
 backend/data/*.db
+backend/ipfs/*
+ipfs/
