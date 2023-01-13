@@ -15,6 +15,7 @@ self_address_request = json.dumps({
 
 CMD_NEW_TEXT = "newText"
 CMD_GET_TEXT = "getText"
+CMD_GET_PING = "ping"
 
 NYM_KIND_TEXT = b'\x00'  # uint8
 NYM_KIND_BINARY = b'\x01'
@@ -79,14 +80,13 @@ class Serve:
             print(f"Error ws: {message}")
             traceback.print_exc()
         except UnicodeDecodeError as e:
-            print("Unicode error, nothing to do about: {e}")
+            print(f"Unicode error, nothing to do about: {e}")
             return
         finally:
             self.ws.close()
             exit(1)
 
     def on_close(self, ws):
-
         print(f"Connection to nym-client closed")
 
     def on_message(self, ws, message):
@@ -141,7 +141,6 @@ class Serve:
         except (IndexError, KeyError, json.JSONDecodeError) as e:
             if recipient is not None:
                 err_msg = f"Error parsing message: {e}"
-                print(err_msg)
                 reply_message = err_msg
                 self.ws.send(Serve.createPayload(recipient, reply_message))
                 print(f"send error message, data received {message}")
@@ -157,6 +156,8 @@ class Serve:
                 reply = self.newText(recipient, data)
             elif event == CMD_GET_TEXT:
                 reply = self.getText(recipient, data)
+            elif event == CMD_GET_PING:
+                reply = self.getVersion(recipient)
             else:
                 reply = f"Error event {event} not found"
             
@@ -225,3 +226,8 @@ class Serve:
             reply_message = "error"
 
         return Serve.createPayload(recipient, reply_message)
+
+    def getVersion(self,recipient):
+        reply_message=json.dumps({"version": utils.VERSION,"alive":True})
+        return Serve.createPayload(recipient,reply_message)
+
