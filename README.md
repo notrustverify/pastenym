@@ -79,8 +79,8 @@ NodeJS (`v16.13.1`) and NPM (`v9.20.0`) are used for the frontend.
 **First init the nym-client and copy files**
 ```bash
 cd nym-client
-chmod u+x nym-client
-./nym-client init --id docker-client --gateway EBT8jTD8o4tKng2NXrrcrzVhJiBnKpT1bJy5CMeArt2w
+wget -N https://github.com/nymtech/nym/releases/download/$(curl -s 'https://api.github.com/repos/nymtech/nym/releases' | sed -n '0,/.*"tag_name": "\(nym-binaries.*\)",/s//\1/p' )/nym-client && chmod u+x nym-client
+./nym-client init --id docker-client
 cp -r ~/.nym/clients/docker-client nym-data/clients
 ```
 
