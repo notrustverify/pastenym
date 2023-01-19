@@ -1,21 +1,22 @@
 # 1. This tells docker to use the Rust official image
 FROM rust:1.66-slim-buster as build
 
-RUN apt-get update && apt-get -y install  curl git  wget && rm -rf /var/lib/apt/lists/*
-# 2. Clone the repo and checkout to the lastest binaries branch
-RUN git clone https://github.com/nymtech/nym && cd nym && git checkout $(curl -s 'https://api.github.com/repos/nymtech/nym/releases' | sed -n '0,/.*"tag_name": "\(nym-bi
-naries.*\)",/s//\1/p')
+
+# 2. Copy the files in your machine to the Docker image
+RUN apt-get update && apt-get -y install pkg-config build-essential libssl-dev curl git && rm -rf /var/lib/apt/lists/*
+RUN git clone https://github.com/nymtech/nym && cd nym && git checkout $(curl -s 'https://api.github.com/repos/nymtech/nym/releases' | sed -n '0,/.*"tag_name": "\(nym-binaries.*\)",/s//\1/p')
 WORKDIR /nym
-# Grep for 127.0.0.1 and replace by 0.0.0.0
+RUN ls -la
 RUN grep -rl "127.0.0.1" clients  | xargs sed -i 's/127\.0\.0\.1/0\.0\.0\.0/g'
 
 # Build your program for release
 RUN cargo build --release
+RUN rm -rf target/release/deps/* target/release/build/*
 
 
 FROM ubuntu:latest
 WORKDIR nym
-COPY --from=build /nym/nym/target/release/nym-client .
+COPY --from=build /nym/target/release/nym-client .
 
 RUN apt-get update && apt-get -y install pkg-config build-essential libssl-dev curl jq wget && rm -rf /var/lib/apt/lists/*
 
