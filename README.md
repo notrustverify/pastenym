@@ -76,8 +76,7 @@ NodeJS (`v16.13.1`) and NPM (`v9.20.0`) are used for the frontend.
 
 ## Docker
 
-1. Download the [custom nym-client](https://nym.notrustverify.ch/resources/nym-client). It just a recompiled version that can listen to `0.0.0.0`
-2. Init the nym-client and copy files 
+**First init the nym-client and copy files**
 ```bash
 cd nym-client
 chmod u+x nym-client
@@ -85,8 +84,8 @@ chmod u+x nym-client
 cp -r ~/.nym/clients/docker-client nym-data/clients
 ```
 
-3. Change path in config.toml. For example with user root, search `/home/root` and replace by `/home/user`
-4. `docker compose up --build -d`
+1. Change path in config.toml. For example with user root, search `/home/root` and replace by `/home/user`
+1. `docker compose up --build -d`
 
 ## Structure
 
