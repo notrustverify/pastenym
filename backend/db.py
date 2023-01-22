@@ -1,4 +1,5 @@
 import logging
+import time
 import traceback
 from datetime import datetime
 
@@ -36,7 +37,7 @@ class BaseModel(Model):
         finally:
             self.close()
 
-    def insertText(self, text, url_id, enc_params_b64, burn_view=0,private=True, burn=False, ipfs=False):
+    def insertText(self, text, url_id, enc_params_b64, burn_view=0,private=True, burn=False, ipfs=False,expiration_time=None, expiration_height=None):
         self.connect()
 
         try:
@@ -48,7 +49,9 @@ class BaseModel(Model):
                     url_id=url_id,
                     is_private=private,
                     is_burn=burn,
-                    burn_view=burn_view
+                    burn_view=burn_view,
+                    expiration_time=expiration_time,
+                    expiration_height=expiration_height
                 ).execute()
 
                 return list(Text.select().where(Text.id == idInsert).dicts())
@@ -103,6 +106,31 @@ class BaseModel(Model):
         finally:
             self.close()
 
+    def deletePasteExpirationTime(self,currentTimestamp):
+        try:
+            with database.atomic():
+
+                return Text.delete().where(Text.expiration_time <= currentTimestamp).execute()
+
+        except (IntegrityError, DoesNotExist) as e:
+            logHandler.exception(e)
+            return False
+        finally:
+            self.close()
+
+    def deletePasteExpirationHeight(self, currentHeight):
+        try:
+            with database.atomic():
+
+                return Text.delete().where(Text.expiration_height <= currentHeight).execute()
+
+        except (IntegrityError, DoesNotExist) as e:
+            logHandler.exception(e)
+            return False
+        finally:
+            self.close()
+
+
 
 class Text(BaseModel):
     class Meta:
@@ -114,6 +142,8 @@ class Text(BaseModel):
     # Setting url_id as index allows faster operations
     url_id = TextField(index=True)
     expiration_time = TimestampField(null=True)
+    expiration_height = TimestampField(null=True)
+
     author = TextField(null=True)
     # If not null, means that 'text' field is encrypted with password
     encryption_params_b64 = TextField(null=True)

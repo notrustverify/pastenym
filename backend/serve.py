@@ -1,6 +1,8 @@
 import base64
 import json
 import websocket
+
+from cron import Cron
 from pasteNym import PasteNym
 import utils
 from datetime import datetime
@@ -47,6 +49,7 @@ class Serve:
         url = f"ws://{utils.NYM_CLIENT_ADDR}:1977"
         self.firstRun = True
         self.pasteNym = PasteNym()
+        self.cron= Cron()
         websocket.enableTrace(False)
         self.ws = websocket.WebSocketApp(url,
                                          on_message=lambda ws, msg: self.on_message(
@@ -55,22 +58,20 @@ class Serve:
                                              ws, msg),
                                          on_close=lambda ws:     self.on_close(
                                              ws),
-                                         on_open=lambda ws:     self.on_open(ws))
+                                         on_open=lambda ws:     self.on_open(ws),
+                                         on_pong=lambda ws,msg: self.on_pong(ws,msg)
+                                         )
 
         # Set dispatcher to automatic reconnection
 
-        self.ws.run_forever(dispatcher=rel, ping_interval=30,
-                            ping_timeout=10, ping_payload=self_address_request)
+        self.ws.run_forever(dispatcher=rel, ping_interval=30, ping_timeout=10)
 
         rel.signal(2, rel.abort)  # Keyboard Interrupt
         rel.dispatch()
         self.ws.close()
-
-    def on_ping(self, ws):
-        pass
-
-    def on_pong(self, ws):
-        pass
+    def on_pong(self,ws,msg):
+        self.cron.executeCron()
+        ws.send(self_address_request)
 
     def on_open(self, ws):
         self.ws.send(self_address_request)
@@ -98,6 +99,11 @@ class Serve:
                 return
 
             received_message = json.loads(message)
+
+            # test if it's ping answer message
+            if received_message.get('address'):
+                return
+
             recipient = None
 
         except UnicodeDecodeError as e:
@@ -148,6 +154,8 @@ class Serve:
             else:
                 print(f"No recipient found in message {received_message}")
                 return None
+
+        # excute cron.py
 
         reply = ""
 

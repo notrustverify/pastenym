@@ -17,6 +17,10 @@ DEBUG = bool(os.getenv("DEBUG", 'False').lower() in ('true', '1', 't'))
 IPFS_HOST = os.getenv("IPFS_HOST", "localhost")
 IPFS_CLUSTER_HOST = os.getenv("IPFS_CLUSTER_HOST", None)
 
+BITCOIN_RPC_URL=os.getenv("BITCOIN_RPC_URL",None)
+BITCOIN_RPC_URL_PORT=os.getenv("BITCOIN_RPC_URL_PORT","8832")
+BITCOIN_USER=os.getenv("BITCOIN_USER",None)
+BITCOIN_PASSWORD=os.getenv("BITCOIN_PASSWORD",None)
 
 def generateRandomString(length):
     return token_urlsafe(nbytes=length)

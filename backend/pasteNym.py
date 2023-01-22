@@ -1,13 +1,13 @@
 from datetime import datetime
 
+import cron
 import db
-import sys
 import utils
 import html
 import json
 import base64
 import ipfsHandler
-from utils import isBase64
+import dateparser
 
 
 class PasteNym:
@@ -44,6 +44,25 @@ class PasteNym:
                     burn_view = data.get('burn_view')
                 else:
                     burn_view = 1
+
+            expiration_time = None
+            if data.get('expiration_time') and type(data.get('expiration_time')) == str:
+                rel_expiration_time = data.get('expiration_time')
+                try:
+                    # transform relative time from string to timestamp add in keyword to specify in future
+                    expiration_time = dateparser.parse("in "+rel_expiration_time).timestamp()
+                except Exception as e:
+                    print(f"Parsing time error, set to 0, {e}")
+                    expiration_time = 0
+
+
+            expiration_height = None
+            if data.get('expiration_height') and type(data.get('expiration_height')) == int:
+                expiration_height = data.get('expiration_height')
+                if expiration_height > 0:
+                    expiration_height += cron.Cron.getCurrentHeight()
+                else:
+                    print(f"Parsing height error, height must be positive")
 
 
 
@@ -88,7 +107,7 @@ class PasteNym:
                 while self.db.idExists(urlId) is not None:
                     urlId = utils.generateRandomString(self.idLength)
 
-                return self.db.insertText(html.escape(text), urlId, encParamsB64, burn_view, private, burn, ipfs)
+                return self.db.insertText(html.escape(text), urlId, encParamsB64, burn_view, private, burn, ipfs, expiration_time, expiration_height)
 
 
         except (KeyError, AttributeError) as e:
