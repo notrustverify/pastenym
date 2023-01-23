@@ -14,7 +14,7 @@ NYM_CLIENT_ADDR = os.getenv("NYM_CLIENT_ADDR", '127.0.0.1')
 PASTE_MAX_LENGTH = 10 ** 100  # very big limit because right now we accept file
 DEBUG = bool(os.getenv("DEBUG", 'False').lower() in ('true', '1', 't'))
 
-IPFS_HOST = os.getenv("IPFS_HOST", "localhost")
+IPFS_HOST = os.getenv("IPFS_HOST", None)
 IPFS_CLUSTER_HOST = os.getenv("IPFS_CLUSTER_HOST", None)
 
 BITCOIN_RPC_URL=os.getenv("BITCOIN_RPC_URL",None)

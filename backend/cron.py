@@ -46,6 +46,7 @@ class Cron:
 
         if Cron.bitcoinExpirationEnabled():
             heightNow = Cron.getCurrentHeight()
+            print(heightNow)
             if self.lastExecutionHeight <= heightNow:
                 print(f"Number paste height deleted: {self.deleteExpiredHeightPaste(heightNow)}")
                 self.lastExecutionHeight = heightNow
