@@ -92,6 +92,6 @@ cp -r ~/.nym/clients/docker-client nym-data/clients
 
 * `backend/` manage the websockets connections and DB
 * [Frontend](https://github.com/notrustverify/pastenym-frontend) web application
-* [CLI](https://github.com/notrustverify/pastenym-cli) CLI application to interact with pastenym without the frontend
+* [CLI](https://github.com/notrustverify/pastenym-cli) application to interact with pastenym without the frontend
 * `nym-client/` store the configuration,keys for the nym-client
 * `resources/` store img or files for documentation
