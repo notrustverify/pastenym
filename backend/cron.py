@@ -5,8 +5,6 @@ from bitcoinrpc.authproxy import AuthServiceProxy
 import db
 import utils
 
-TIME_EXECUTION_TIME_MINUTES = 0
-
 
 class Cron:
 
@@ -47,7 +45,7 @@ class Cron:
         timestampNow = time.time()
 
         # only execute delete paste every 1 minute
-        if self.lastExecutionTime <= timestampNow - TIME_EXECUTION_TIME_MINUTES * 60:
+        if self.lastExecutionTime <= timestampNow - utils.EXPIRATION_EXECUTION_TIME_MINUTES * 60:
             print(f"Number paste time deleted: {self.deleteExpiredTimePaste()}")
             self.lastExecutionTime = timestampNow
 

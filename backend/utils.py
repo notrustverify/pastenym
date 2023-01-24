@@ -22,6 +22,8 @@ BITCOIN_RPC_URL_PORT=os.getenv("BITCOIN_RPC_URL_PORT","8332")
 BITCOIN_USER=os.getenv("BITCOIN_USER",None)
 BITCOIN_PASSWORD=os.getenv("BITCOIN_PASSWORD",None)
 
+EXPIRATION_EXECUTION_TIME_MINUTES=os.getenv("EXPIRATION_EXECUTION_TIME_MINUTES",1)
+
 def generateRandomString(length):
     return token_urlsafe(nbytes=length)
 
