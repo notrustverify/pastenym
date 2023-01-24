@@ -59,7 +59,12 @@ class PasteNym:
             if data.get('expiration_height') and type(
                     data.get('expiration_height')) == int and data.get('expiration_height') > 0:
                 if utils.BITCOIN_RPC_URL:
-                    expiration_height = data.get('expiration_height') + cron.Cron.getCurrentHeight()
+                    currentActual = cron.Cron.getCurrentHeight()
+                    if currentActual > 0:
+                        expiration_height = data.get('expiration_height') + currentActual
+                    else:
+                        print("error: with current height")
+                        return None
                 else:
                     print("error: Bitcoin block not working")
                     return None

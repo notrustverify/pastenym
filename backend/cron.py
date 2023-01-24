@@ -5,7 +5,7 @@ from bitcoinrpc.authproxy import AuthServiceProxy
 import db
 import utils
 
-TIME_EXECUTION_TIME_MINUTES = 1
+TIME_EXECUTION_TIME_MINUTES = 0
 
 
 class Cron:
@@ -17,21 +17,28 @@ class Cron:
         timestampNow = time.time()
         self.lastExecutionTime = timestampNow
 
+        # test if connection to Bitcoin Core is working
+        self.bitcoinCoreWorking = False
+
         if Cron.bitcoinExpirationEnabled():
-            try:
-                self.rpc_connection = AuthServiceProxy(
+            self.rpc_connection = AuthServiceProxy(
                     f"http://{utils.BITCOIN_USER}:{utils.BITCOIN_PASSWORD}@{utils.BITCOIN_RPC_URL}:{utils.BITCOIN_RPC_URL_PORT}")
-                self.lastExecutionHeight = Cron.getCurrentHeight()
-            except Exception:
-                print("Error connection to bitcoin core rpc")
-                traceback.print_exc()
+            self.lastExecutionHeight = Cron.getCurrentHeight()
+
+            if self.lastExecutionHeight > 0:
+                self.bitcoinCoreWorking = True
+
+            if not(self.bitcoinCoreWorking):
+                print("Connection to Bitcoin Core is not working. Paste height expiration is disabled")
+
 
     def executeCron(self):
 
         if self.firstRun:
             print("First run delete job")
             print(f"Number paste time deleted: {self.deleteExpiredTimePaste()}")
-            if Cron.bitcoinExpirationEnabled():
+
+            if Cron.bitcoinExpirationEnabled() and self.bitcoinCoreWorking:
                 print(f"Number paste height deleted: {self.deleteExpiredHeightPaste(self.lastExecutionHeight)}")
 
             self.firstRun = False
@@ -44,9 +51,10 @@ class Cron:
             print(f"Number paste time deleted: {self.deleteExpiredTimePaste()}")
             self.lastExecutionTime = timestampNow
 
-        if Cron.bitcoinExpirationEnabled():
+        if Cron.bitcoinExpirationEnabled() and self.bitcoinCoreWorking:
+
             heightNow = Cron.getCurrentHeight()
-            print(heightNow)
+
             if self.lastExecutionHeight <= heightNow:
                 print(f"Number paste height deleted: {self.deleteExpiredHeightPaste(heightNow)}")
                 self.lastExecutionHeight = heightNow
@@ -59,6 +67,7 @@ class Cron:
             return self.db.deletePasteExpirationHeight(heightNow)
         else:
             print("error with current height, cannot remove the paste")
+            return 0
 
     @staticmethod
     def getCurrentHeight():
