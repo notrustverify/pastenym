@@ -5,6 +5,7 @@
 backend/ipfs/data
 backend/ipfs/ipfs_fuse
 backend/ipfs/ipns_fuse
+backend/bitcoin-core
 .idea
 env.docker
 docker-compose.yml

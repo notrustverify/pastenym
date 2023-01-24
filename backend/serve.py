@@ -1,13 +1,14 @@
 import base64
 import json
 import websocket
+
+from cron import Cron
 from pasteNym import PasteNym
 import utils
 from datetime import datetime
 import traceback
 import ipfsHandler
 import rel
-
 
 self_address_request = json.dumps({
     "type": "selfAddress"
@@ -20,8 +21,8 @@ CMD_GET_PING = "ping"
 NYM_KIND_TEXT = b'\x00'  # uint8
 NYM_KIND_BINARY = b'\x01'
 
-NYM_HEADER_SIZE_TEXT = b'\x00'*8  # set to 0 if it's a text
-NYM_HEADER_BINARY = b'\x00'*8  # not used now, to investigate later
+NYM_HEADER_SIZE_TEXT = b'\x00' * 8  # set to 0 if it's a text
+NYM_HEADER_BINARY = b'\x00' * 8  # not used now, to investigate later
 
 
 class Serve:
@@ -29,15 +30,15 @@ class Serve:
     @staticmethod
     def createPayload(recipient, reply_message, is_text=True):
         if is_text:
-            metadata = (NYM_KIND_TEXT+NYM_HEADER_SIZE_TEXT).decode('utf-8')
+            metadata = (NYM_KIND_TEXT + NYM_HEADER_SIZE_TEXT).decode('utf-8')
         else:
             # not used now, to investigate later
-            metadata = (NYM_KIND_BINARY+NYM_HEADER_BINARY).decode('utf-8')
+            metadata = (NYM_KIND_BINARY + NYM_HEADER_BINARY).decode('utf-8')
 
         return json.dumps({
             "type": "send",
             # append \x00 because of "kind" message is non binary and equal 0 + 1 bytes because no header are set
-            "message": metadata+reply_message,
+            "message": metadata + reply_message,
             "recipient": recipient,
             "withReplySurb": False
             # "replySurb": reply_surb
@@ -47,30 +48,32 @@ class Serve:
         url = f"ws://{utils.NYM_CLIENT_ADDR}:1977"
         self.firstRun = True
         self.pasteNym = PasteNym()
+        self.cron = Cron()
+        self.cron.executeCron()
+
         websocket.enableTrace(False)
         self.ws = websocket.WebSocketApp(url,
                                          on_message=lambda ws, msg: self.on_message(
                                              ws, msg),
                                          on_error=lambda ws, msg: self.on_error(
                                              ws, msg),
-                                         on_close=lambda ws:     self.on_close(
+                                         on_close=lambda ws: self.on_close(
                                              ws),
-                                         on_open=lambda ws:     self.on_open(ws))
+                                         on_open=lambda ws: self.on_open(ws),
+                                         on_pong=lambda ws, msg: self.on_pong(ws, msg)
+                                         )
 
         # Set dispatcher to automatic reconnection
 
-        self.ws.run_forever(dispatcher=rel, ping_interval=30,
-                            ping_timeout=10, ping_payload=self_address_request)
+        self.ws.run_forever(dispatcher=rel, ping_interval=30, ping_timeout=10)
 
         rel.signal(2, rel.abort)  # Keyboard Interrupt
         rel.dispatch()
         self.ws.close()
 
-    def on_ping(self, ws):
-        pass
-
-    def on_pong(self, ws):
-        pass
+    def on_pong(self, ws, msg):
+        self.cron.executeCron()
+        ws.send(self_address_request)
 
     def on_open(self, ws):
         self.ws.send(self_address_request)
@@ -98,6 +101,11 @@ class Serve:
                 return
 
             received_message = json.loads(message)
+
+            # test if it's ping answer message
+            if received_message.get('address'):
+                return
+
             recipient = None
 
         except UnicodeDecodeError as e:
@@ -160,7 +168,7 @@ class Serve:
                 reply = self.getVersion(recipient)
             else:
                 reply = f"Error event {event} not found"
-            
+
             if utils.DEBUG:
                 print(f"-> Rcv {event} - answers {reply} over the mix network.")
             else:
@@ -185,7 +193,7 @@ class Serve:
                                 reply_message['ipfs'] = urlId[0].get('is_ipfs')
                                 reply_message.update({"hash": urlId[0].get('url_id')})
 
-                            reply_message.update({ "url_id": urlId[0].get('url_id')})
+                            reply_message.update({"url_id": urlId[0].get('url_id')})
                         else:
                             reply_message = "Error"
                     except IndexError as e:
@@ -212,11 +220,11 @@ class Serve:
                 if type(createdOn) == str:
 
                     # remove the microseconds
-                    text['created_on'] = datetime.strptime(createdOn.split(".")[0],"%Y-%m-%dT%H:%M:%S")
+                    text['created_on'] = datetime.strptime(createdOn.split(".")[0], "%Y-%m-%dT%H:%M:%S")
 
                 elif createdOn is not None:
                     text['created_on'] = datetime.isoformat(
-                    createdOn)+'Z'
+                        createdOn) + 'Z'
                 reply_message = json.dumps(text, default=str)
 
             else:
@@ -227,7 +235,9 @@ class Serve:
 
         return Serve.createPayload(recipient, reply_message)
 
-    def getVersion(self,recipient):
-        reply_message=json.dumps({"version": utils.VERSION,"alive":True})
-        return Serve.createPayload(recipient,reply_message)
+    def getVersion(self, recipient):
 
+        capabilities = {'ipfsHosting': utils.IPFS_HOST is not None,
+                        'expirationBitcoinHeight': utils.BITCOIN_RPC_URL is not None}
+        reply_message = {"version": utils.VERSION, "alive": True, "capabilities": capabilities}
+        return Serve.createPayload(recipient, json.dumps(reply_message))
