@@ -78,7 +78,9 @@ class BaseModel(Model):
                                    Text.is_burn,
                                    Text.is_ipfs,
                                    Text.burn_view,
-                                   Text.encryption_params_b64
+                                   Text.encryption_params_b64,
+                                   Text.expiration_time,
+                                   Text.expiration_height,
                                    ).where(Text.url_id == url_id).dicts()
 
                 if len(data) == 1:
