@@ -225,6 +225,11 @@ class Serve:
                 elif createdOn is not None:
                     text['created_on'] = datetime.isoformat(
                         createdOn) + 'Z'
+
+                if text.get('expiration_time'):
+                    text['expiration_time'] = datetime.isoformat(
+                        text['expiration_time']) + 'Z'
+
                 reply_message = json.dumps(text, default=str)
 
             else:

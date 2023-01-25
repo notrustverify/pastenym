@@ -1,3 +1,4 @@
+import datetime
 import json
 import time
 import traceback
@@ -12,7 +13,7 @@ class Cron:
         self.db = db.BaseModel()
         self.firstRun = True
 
-        timestampNow = time.time()
+        timestampNow = Cron.getCurrentTime()
         self.lastExecutionTime = timestampNow
 
         # test if connection to Bitcoin Core is working
@@ -42,7 +43,7 @@ class Cron:
             self.firstRun = False
             return
 
-        timestampNow = time.time()
+        timestampNow = Cron.getCurrentTime()
 
         # only execute delete paste every 1 minute
         if self.lastExecutionTime <= timestampNow - utils.EXPIRATION_EXECUTION_TIME_MINUTES * 60:
@@ -83,7 +84,7 @@ class Cron:
 
     @staticmethod
     def getCurrentTime():
-        return time.time()
+        return datetime.datetime.utcnow().timestamp()
 
     @staticmethod
     def bitcoinExpirationEnabled():

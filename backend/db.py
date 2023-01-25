@@ -85,16 +85,15 @@ class BaseModel(Model):
 
                 if len(data) == 1:
                     retreivedText = data[0]
-                    if retreivedText.get('is_burn'):
-                        try:
+                    try:
+                        if retreivedText.get('is_burn'):
                             if  retreivedText.get('num_view') >= retreivedText.get('burn_view'):
                                 Text.delete().where(Text.id == retreivedText['id']).execute()
 
-                                print(
-                                    f"Deleted text with id: {retreivedText['id']}")
+                                print(f"Deleted text with id: {retreivedText['id']}")
 
-                        except (KeyError, IndexError) as e:
-                            print(f"Error while deleting text {e}")
+                    except (KeyError, IndexError) as e:
+                        print(f"Error while deleting text {e}")
 
                     # Remove text id since it's not a useful informations
                     del retreivedText['id']
@@ -108,7 +107,7 @@ class BaseModel(Model):
         finally:
             self.close()
 
-    def deletePasteExpirationTime(self,currentTimestamp):
+    def deletePasteExpirationTime(self, currentTimestamp):
         try:
             with database.atomic():
 
@@ -143,7 +142,7 @@ class Text(BaseModel):
     is_ipfs = BooleanField(default=False,null=True)
     # Setting url_id as index allows faster operations
     url_id = TextField(index=True)
-    expiration_time = TimestampField(null=True,default=None)
+    expiration_time = TimestampField(null=True, utc=True, default=None)
     expiration_height = IntegerField(null=True,default=None)
 
     author = TextField(null=True)
