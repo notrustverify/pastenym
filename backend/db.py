@@ -141,8 +141,8 @@ class Text(BaseModel):
     is_ipfs = BooleanField(default=False,null=True)
     # Setting url_id as index allows faster operations
     url_id = TextField(index=True)
-    expiration_time = TimestampField(null=True)
-    expiration_height = TimestampField(null=True)
+    expiration_time = TimestampField(null=True,default=None)
+    expiration_height = IntegerField(null=True,default=None)
 
     author = TextField(null=True)
     # If not null, means that 'text' field is encrypted with password
