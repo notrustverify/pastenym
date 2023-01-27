@@ -16,15 +16,11 @@ FROM bitnami/minideb:latest
 WORKDIR nym
 COPY --from=build /nym/target/release/nym-client .
 
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get -y install wget && rm -rf /var/lib/apt/lists/*
-
 RUN wget -q http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
 RUN dpkg -i libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb &&  rm -rf  libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
 
 
 RUN useradd -ms /sbin/nologin user
-#RUN chown user:user nym-client
 RUN mkdir -p /home/user/.nym
 RUN chown -R user:user /home/user && chmod +x nym-client
 USER user
