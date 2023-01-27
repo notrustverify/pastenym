@@ -242,7 +242,7 @@ class Serve:
 
     def getVersion(self, recipient):
 
-        capabilities = {'ipfsHosting': utils.IPFS_HOST is not None,
-                        'expirationBitcoinHeight': utils.BITCOIN_RPC_URL is not None}
+        capabilities = {'ipfs_hosting': utils.IPFS_HOST is not None,
+                        'expiration_bitcoin_height': utils.BITCOIN_RPC_URL is not None}
         reply_message = {"version": utils.VERSION, "alive": True, "capabilities": capabilities}
         return Serve.createPayload(recipient, json.dumps(reply_message))
