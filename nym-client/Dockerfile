@@ -16,8 +16,8 @@ FROM bitnami/minideb:latest
 WORKDIR nym
 COPY --from=build /nym/target/release/nym-client .
 
-RUN wget -q http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
-RUN dpkg -i libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb &&  rm -rf  libssl1.1_1.1.1f-1ubuntu2.16_amd64.deb
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && apt-get -y install ca-certificates && rm -rf /var/lib/apt/lists/*
 
 
 RUN useradd -ms /sbin/nologin user
