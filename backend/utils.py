@@ -5,7 +5,7 @@ from secrets import token_urlsafe
 from cid import make_cid
 from dotenv import load_dotenv
 
-VERSION="1.1.0"
+VERSION="1.1.1"
 
 load_dotenv()
 
