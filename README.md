@@ -63,7 +63,9 @@ docker compose build
 docker compose up -d
 ```
 
-To retrieve the nym-client id of the backend use `docker compose logs nym-client --since 10m| grep -E ".*address of this.*" `## Contribute
+To retrieve the nym-client id of the backend use `docker compose logs nym-client --since 10m| grep -E ".*address of this.*" `
+
+## Contribute
 
 If you wish to contribute to the project, you will need to run the Nym client and Backend as explained in the Init part above AND run a local frontend.
 
