@@ -54,6 +54,11 @@ services:
 #       -rpcuser=user
 #       -rpcpassword=user
 #     volumes:
+#     healthcheck:
+#        test: bitcoin-cli -rpcuser=user -rpcpassword=user  getblockchaininfo || exit 1
+#        interval: 30s
+#        timeout: 10s
+#        retries: 5
 #       - ./bitcoin-core:/home/bitcoin/.bitcoin
 #     ports:
 #       - 127.0.0.1:8332:8332
