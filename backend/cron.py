@@ -62,9 +62,11 @@ class Cron:
 
     def deleteExpiredHeightPaste(self, heightNow):
         if heightNow > 0:
+            self.bitcoinCoreWorking = True
             return self.db.deletePasteExpirationHeight(heightNow)
         else:
             print("error with current height, cannot remove the paste")
+            self.bitcoinCoreWorking = False
             return 0
 
     @staticmethod

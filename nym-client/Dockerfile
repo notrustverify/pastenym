@@ -15,6 +15,7 @@ RUN rm -rf target/release/deps/* target/release/build/*
 FROM bitnami/minideb:latest
 WORKDIR nym
 COPY --from=build /nym/target/release/nym-client .
+COPY entrypoint.sh entrypoint.sh
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get -y install ca-certificates && rm -rf /var/lib/apt/lists/*
@@ -22,8 +23,8 @@ RUN apt-get update && apt-get -y install ca-certificates && rm -rf /var/lib/apt/
 
 RUN useradd -ms /sbin/nologin user
 RUN mkdir -p /home/user/.nym
-RUN chown -R user:user /home/user && chmod +x nym-client
+RUN chown -R user:user /home/user && chmod +x nym-client && chmod +x entrypoint.sh
 USER user
 
-CMD ./nym-client run --id docker-client
+ENTRYPOINT ["./entrypoint.sh"]
 
