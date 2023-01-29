@@ -21,15 +21,14 @@ class Cron:
 
         if Cron.bitcoinExpirationEnabled():
             self.rpc_connection = AuthServiceProxy(
-                    f"http://{utils.BITCOIN_USER}:{utils.BITCOIN_PASSWORD}@{utils.BITCOIN_RPC_URL}:{utils.BITCOIN_RPC_URL_PORT}")
+                f"http://{utils.BITCOIN_USER}:{utils.BITCOIN_PASSWORD}@{utils.BITCOIN_RPC_URL}:{utils.BITCOIN_RPC_URL_PORT}")
             self.lastExecutionHeight = Cron.getCurrentHeight()
 
             if self.lastExecutionHeight > 0:
                 self.bitcoinCoreWorking = True
 
-            if not(self.bitcoinCoreWorking):
+            if not self.bitcoinCoreWorking:
                 print("Connection to Bitcoin Core is not working. Paste height expiration is disabled")
-
 
     def executeCron(self):
 
@@ -54,7 +53,8 @@ class Cron:
 
             heightNow = Cron.getCurrentHeight()
 
-            if self.lastExecutionHeight <= heightNow:
+            print(self.lastExecutionHeight, heightNow)
+            if self.lastExecutionHeight < heightNow:
                 print(f"Number paste height deleted: {self.deleteExpiredHeightPaste(heightNow)}")
                 self.lastExecutionHeight = heightNow
 
@@ -89,3 +89,6 @@ class Cron:
     @staticmethod
     def bitcoinExpirationEnabled():
         return True if utils.BITCOIN_RPC_URL is not None else False
+
+    def isBitcoinExpirationWorking(self):
+        return self.bitcoinCoreWorking

@@ -26,3 +26,4 @@ RUN chown -R user:user /home/user && chmod +x nym-client
 USER user
 
 CMD ./nym-client run --id docker-client
+
