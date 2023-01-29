@@ -53,7 +53,6 @@ class Cron:
 
             heightNow = Cron.getCurrentHeight()
 
-            print(self.lastExecutionHeight, heightNow)
             if self.lastExecutionHeight < heightNow:
                 print(f"Number paste height deleted: {self.deleteExpiredHeightPaste(heightNow)}")
                 self.lastExecutionHeight = heightNow
