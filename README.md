@@ -1,8 +1,9 @@
 # pastenym
 
 This project is inspired from [pastebin](https://pastebin.com/) service.
-The main goal is to offer a solution for sharing text with [Nym](https://nymtech.net/) products
-to offer full anonymity, even on metadata level
+The main goal is to offer a solution for sharing text with [Nym](https://nymtech.net/) products to offer full anonymity, even on metadata level
+
+Check [here](#with-docker) to run you own backend
 
 #### Demo
 Get shared text: [https://pastenym.ch/#/jD6Vhmrz&key=b2d6ae002a1674daa43a07be7fc4f01c](https://pastenym.ch/#/jD6Vhmrz&key=b2d6ae002a1674daa43a07be7fc4f01c)
@@ -31,16 +32,17 @@ On the side of No Trust Verify we only see an anonymous id when sending the text
 
 ## Init the project
 
+First a nym-client should be started
+
 ### Nym client
-1. Download [nym-client](https://github.com/nymtech/nym/releases/tag/nym-binaries-1.1.0)
+1. Download [nym-client](https://github.com/nymtech/nym/releases/)
 2. Give exec permissions and init the client
 ```bash
 chmod u+x nym-client
-./nym-client init --id pastenym --gateway EBT8jTD8o4tKng2NXrrcrzVhJiBnKpT1bJy5CMeArt2w
+./nym-client init --id pastenym
 ```
 3. Run the client `./nym-client run --id pastenym`
 
-### Backend
 It uses [pipenv](https://pipenv.pypa.io/en/latest/install/)
 
 1. Go to `backend/`
@@ -48,7 +50,20 @@ It uses [pipenv](https://pipenv.pypa.io/en/latest/install/)
 3. `pipenv install` to install the dependancies from the PipFile
 4. `python main.py` to start the service. On the first run, it will create and initialize a local database at `backend/data/data.db`.
 
-## Contribute
+
+### With Docker
+
+```bash
+git clone https://github.com/notrustverify/pastenym
+cd nym-client
+cp example.docker-compose.yml docker-compose.yml
+cp example.env.docker env.docker
+
+docker compose build
+docker compose up -d
+```
+
+To retrieve the nym-client id of the backend use `docker compose logs nym-client --since 10m| grep -E ".*address of this.*" `## Contribute
 
 If you wish to contribute to the project, you will need to run the Nym client and Backend as explained in the Init part above AND run a local frontend.
 
@@ -67,25 +82,7 @@ If you enjoy pastenym, please consider buying us a cup of coffee. We worked hard
 
 
 ### Frontend
-NodeJS (`v16.13.1`) and NPM (`v9.20.0`) are used for the frontend.
-
-1. Clone https://github.com/notrustverify/pastenym-frontend and move in the folder
-2. Create a `.env` file with the same keys are in `.env.example` with your values. The `REACT_APP_NYM_CLIENT_SERVER` value should match the address displayed by the backend.
-3. Run `npm install` and grab a cup of coffee
-4. Run `npm run start` and go to [http://localhost:8080](http://localhost:8080) in your favorite browser.
-
-## Docker
-
-**First init the nym-client and copy files**
-```bash
-cd nym-client
-wget -N https://github.com/nymtech/nym/releases/download/$(curl -s 'https://api.github.com/repos/nymtech/nym/releases' | sed -n '0,/.*"tag_name": "\(nym-binaries.*\)",/s//\1/p' )/nym-client && chmod u+x nym-client
-./nym-client init --id docker-client
-cp -r ~/.nym/clients/docker-client nym-data/clients
-```
-
-1. Change path in config.toml. For example with user root, search `/home/root` and replace by `/home/user`
-1. `docker compose up --build -d`
+Use the dedicated repository avalaible [here](https://github.com/notrustverify/pastenym-frontend)
 
 ## Structure
 
