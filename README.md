@@ -55,7 +55,7 @@ It uses [pipenv](https://pipenv.pypa.io/en/latest/install/)
 
 ```bash
 git clone https://github.com/notrustverify/pastenym
-cd nym-client
+cd pastenym
 cp example.docker-compose.yml docker-compose.yml
 cp example.env.docker env.docker
 
