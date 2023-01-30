@@ -21,8 +21,7 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get -y install ca-certificates && rm -rf /var/lib/apt/lists/*
 
 
-RUN useradd -ms /sbin/nologin user
-RUN mkdir -p /home/user/.nym
+RUN groupadd -g 10000 user &&  useradd -u 10000 -g 10000 -ms /sbin/nologin user
 RUN chown -R user:user /home/user && chmod +x nym-client && chmod +x entrypoint.sh
 USER user
 
