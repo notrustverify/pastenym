@@ -58,7 +58,7 @@ git clone https://github.com/notrustverify/pastenym
 cd pastenym
 cp example.docker-compose.yml docker-compose.yml
 cp env.docker.example env.docker
-chown -R 1000 nym-client/nym-data
+chown -R 1000:1000 nym-client/nym-data/
 
 docker compose --build -d
 ```
