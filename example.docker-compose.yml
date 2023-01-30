@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
     env_file: env.docker
     volumes:
-      - ./backend/data/data.db:/data/data.db
+      - ./backend/data/:/data/
 
   nym-client:
     build:
