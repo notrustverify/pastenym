@@ -57,7 +57,7 @@ It uses [pipenv](https://pipenv.pypa.io/en/latest/install/)
 git clone https://github.com/notrustverify/pastenym
 cd pastenym
 cp example.docker-compose.yml docker-compose.yml
-cp example.env.docker env.docker
+cp env.docker.example env.docker
 
 docker compose build
 docker compose up -d
