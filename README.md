@@ -58,9 +58,9 @@ git clone https://github.com/notrustverify/pastenym
 cd pastenym
 cp example.docker-compose.yml docker-compose.yml
 cp env.docker.example env.docker
+chown -R 1000 nym-client/nym-data
 
-docker compose build
-docker compose up -d
+docker compose --build -d
 ```
 
 To retrieve the nym-client id of the backend use `docker compose logs nym-client --since 10m| grep -E ".*address of this.*" `
