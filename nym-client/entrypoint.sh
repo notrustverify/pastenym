@@ -4,6 +4,7 @@ set -e
 
 NAME_CLIENT=${NAME_CLIENT:-"pastenym-backend-client"}
 CLIENTS_DIR=~/.nym/clients/${NAME_CLIENT}
+LISTENING_ADDRESS=${LISTENING_ADDRESS_:-0.0.0.0}
 
 
 if [ ! -d ${CLIENTS_DIR} ]; then
@@ -16,4 +17,4 @@ if [ ! -d ${CLIENTS_DIR} ]; then
 fi
 
 echo "Run nym client"
-./nym-client run --id  $NAME_CLIENT
+./nym-client run --id  $NAME_CLIENT --host ${LISTENING_ADDRESS}
