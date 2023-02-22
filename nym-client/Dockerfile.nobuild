@@ -1,0 +1,19 @@
+FROM bitnami/minideb:latest
+WORKDIR nym
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && apt-get -y install wget curl && rm -rf /var/lib/apt/lists/*
+RUN wget https://github.com/nymtech/nym/releases/download/$(curl -s 'https://api.github.com/repos/nymtech/nym/releases' | sed -n '0,/.*"tag_name": "\(nym-binaries.*\)",/s//\1/p')/nym-client -O nym-client
+
+COPY entrypoint.sh entrypoint.sh
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && apt-get -y install ca-certificates && rm -rf /var/lib/apt/lists/*
+
+
+RUN groupadd -g 10000 user &&  useradd -u 10000 -g 10000 -ms /sbin/nologin user
+RUN chown -R user:user /home/user && chmod +x nym-client && chmod +x entrypoint.sh
+USER user
+
+ENTRYPOINT ["./entrypoint.sh"]
+

@@ -2,18 +2,25 @@
 
 set -e
 
-NAME_CLIENT=${NAME_CLIENT:-"pastenym-backend-client"}
+NAME_CLIENT=${NAME_CLIENT:-"docker-mixnode"}
 CLIENTS_DIR=~/.nym/clients/${NAME_CLIENT}
-LISTENING_ADDRESS=${LISTENING_ADDRESS_:-0.0.0.0}
+FORCE_INIT=${FORCE_INIT:-false}
+LISTENING_ADDRESS=${LISTENING_ADDRESS:-"127.0.0.1"}
+
+EXEC_VERSION=$(./nym-client -V | tail -n1 | sed 's:nym-client::' |xargs)
+
+if [ -f "${CLIENTS_DIR}/config/config.toml" ]; then
+        CONFIG_VERSION=$(cat "${CLIENTS_DIR}/config/config.toml" | awk -F "=" '/version/ {print $2}' | xargs)
+fi
 
 
-if [ ! -d ${CLIENTS_DIR} ]; then
-    echo "Init nym client"
-    if [[ -v GATEWAY ]]; then
+if [[ $EXEC_VERSION != $CONFIG_VERSION || $FORCE_INIT == true ]];then 
+   echo "Init nym client"
+   if [[ -v GATEWAY ]]; then
    	./nym-client init --id $NAME_CLIENT --gateway ${GATEWAY}
-    else
+       else
    	./nym-client init --id $NAME_CLIENT
-    fi
+   fi
 fi
 
 echo "Run nym client"
