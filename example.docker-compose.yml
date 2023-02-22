@@ -20,6 +20,8 @@ services:
     build:
       context: ./nym-client
     restart: unless-stopped
+    environment:
+      - LISTENING_ADDRESS=0.0.0.0
     volumes:
        - ./nym-client/nym-data/:/home/user/.nym/
     depends_on:
