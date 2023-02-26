@@ -21,28 +21,39 @@ CMD_GET_PING = "ping"
 NYM_KIND_TEXT = b'\x00'  # uint8
 NYM_KIND_BINARY = b'\x01'
 
-NYM_HEADER_SIZE_TEXT = b'\x00' * 8  # set to 0 if it's a text
+NYM_HEADER_SIZE_TEXT = b'\x00' * 6  # set to 0 if it's a text
 NYM_HEADER_BINARY = b'\x00' * 8  # not used now, to investigate later
 
+HEADER_TEXT_PLAIN_BYTE=b")"
+HEADER_APPLICATION_JSON_BYTE=b"."
 
+# to modify, cleaner solution
+HEADER_APPLICATION_JSON="{\"mimeType\":\"application/json\",\"headers\":null}"
+TOTAL_HEADERS_PAD_SIZE = len(HEADER_APPLICATION_JSON)+len(NYM_HEADER_SIZE_TEXT)+len(HEADER_APPLICATION_JSON_BYTE)+1
 class Serve:
 
     @staticmethod
-    def createPayload(recipient, reply_message, is_text=True):
+    def createPayload(recipient, reply_message, senderTag=None ,is_text=True):
         if is_text:
-            metadata = (NYM_KIND_TEXT + NYM_HEADER_SIZE_TEXT).decode('utf-8')
+            headers = HEADER_APPLICATION_JSON
+            padding = (NYM_KIND_TEXT + NYM_HEADER_SIZE_TEXT+HEADER_APPLICATION_JSON_BYTE).decode('utf-8')
         else:
             # not used now, to investigate later
-            metadata = (NYM_KIND_BINARY + NYM_HEADER_BINARY).decode('utf-8')
+            padding = (NYM_KIND_BINARY + NYM_HEADER_BINARY).decode('utf-8')
 
-        return json.dumps({
-            "type": "send",
+        dataToSend = {
+           "type": "reply",
             # append \x00 because of "kind" message is non binary and equal 0 + 1 bytes because no header are set
-            "message": metadata + reply_message,
-            "recipient": recipient,
-            "withReplySurb": False
-            # "replySurb": reply_surb
-        })
+           #"message": ,
+            "message": padding+headers+reply_message
+        }
+
+        if senderTag is not None:
+            dataToSend.update({'senderTag': senderTag})
+        elif recipient is not None:
+            dataToSend.update({'recipient': recipient})
+
+        return json.dumps(dataToSend)
 
     def __init__(self):
         url = f"ws://{utils.NYM_CLIENT_ADDR}:1977"
@@ -125,8 +136,9 @@ class Serve:
 
         # we received the data in a json
         try:
-            # received data with padding, start at the 9th bytes
-            payload = received_message['message'][9:]
+            # received data with padding, start at the 54th bytes
+            payload = received_message['message'][TOTAL_HEADERS_PAD_SIZE:]
+            senderTag = received_message.get('senderTag', None)
 
             if kindReceived == NYM_KIND_TEXT:
                 received_data = json.loads(payload)
@@ -134,23 +146,29 @@ class Serve:
                 print("bin data received. Don't know what to do")
                 return
             else:
+
+                print(message)
                 print("no message kind received. Don't know what to do")
                 return
 
-            recipient = received_data['sender']
+            if senderTag is None:
+                recipient = received_data['sender']
+            else:
+                recipient = None
+
             event = received_data['event']
             data = received_data['data']
 
             if utils.DEBUG:
                 print(f"-> Got {received_message}")
             else:
-                print(f"-> Got {event} from {recipient}")
+                print(f"-> Got {event} from {senderTag}")
 
         except (IndexError, KeyError, json.JSONDecodeError) as e:
-            if recipient is not None:
+            if recipient is not None or senderTag is not None:
                 err_msg = f"Error parsing message: {e}"
                 reply_message = err_msg
-                self.ws.send(Serve.createPayload(recipient, reply_message))
+                self.ws.send(Serve.createPayload(recipient, reply_message, senderTag))
                 print(f"send error message, data received {message}")
                 return
             else:
@@ -159,26 +177,26 @@ class Serve:
 
         reply = ""
 
-        if recipient is not None:
+        if recipient is not None or senderTag is not None:
             if event == CMD_NEW_TEXT:
-                reply = self.newText(recipient, data)
+                reply = self.newText(recipient, data, senderTag)
             elif event == CMD_GET_TEXT:
-                reply = self.getText(recipient, data)
+                reply = self.getText(recipient, data, senderTag)
             elif event == CMD_GET_PING:
-                reply = self.getVersion(recipient)
+                reply = self.getVersion(recipient,senderTag)
             else:
                 reply = f"Error event {event} not found"
 
             if utils.DEBUG:
                 print(f"-> Rcv {event} - answers {reply} over the mix network.")
             else:
-                print(f"-> Rcv {event} - answers to {recipient} over the mix network.")
+                print(f"-> Rcv {event} - answers to {senderTag} over the mix network.")
 
             self.ws.send(reply)
         else:
-            print(f"No recipient found in message {received_message}")
+            print(f"No recipient/senderTag found in message {received_message}")
 
-    def newText(self, recipient, message):
+    def newText(self, recipient, message, senderTag):
 
         reply_message = None
         if "text" in message.keys():
@@ -206,9 +224,9 @@ class Serve:
         else:
             reply_message = "Message has no text!"
 
-        return Serve.createPayload(recipient, json.dumps(reply_message))
+        return Serve.createPayload(recipient, json.dumps(reply_message),senderTag)
 
-    def getText(self, recipient, message):
+    def getText(self, recipient, message,senderTag):
         text = self.pasteNym.getTextById(message)
 
         try:
@@ -238,11 +256,11 @@ class Serve:
             print(e)
             reply_message = "error"
 
-        return Serve.createPayload(recipient, reply_message)
+        return Serve.createPayload(recipient, reply_message, senderTag)
 
-    def getVersion(self, recipient):
+    def getVersion(self, recipient=None, senderTag=None):
 
         capabilities = {'ipfs_hosting': utils.IPFS_HOST is not None,
                         'expiration_bitcoin_height': utils.BITCOIN_RPC_URL is not None and self.cron.isBitcoinExpirationWorking()}
         reply_message = {"version": utils.VERSION, "alive": True, "capabilities": capabilities}
-        return Serve.createPayload(recipient, json.dumps(reply_message))
+        return Serve.createPayload(recipient, json.dumps(reply_message), senderTag)
