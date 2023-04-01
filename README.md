@@ -60,7 +60,7 @@ cp example.docker-compose.yml docker-compose.yml
 cp env.docker.example env.docker
 chown -R 10000:10000 nym-client/nym-data/
 
-docker compose --build -d
+docker compose up --build  -d
 ```
 
 To retrieve the nym-client id of the backend use `docker compose logs nym-client --since 10m| grep -E ".*address of this.*" `
