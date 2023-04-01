@@ -4,6 +4,7 @@ import db
 from os.path import exists
 import ipfsHandler
 import cron
+import time
 
 if __name__ == '__main__':
 
@@ -11,7 +12,6 @@ if __name__ == '__main__':
         print("Create database done")
         db.create_tables()
 
-    # init and start the backend server
+    # wait for nym-cloent to start, init and start the backend server
+    time.sleep(6)
     serveClient = Serve()
-
-
