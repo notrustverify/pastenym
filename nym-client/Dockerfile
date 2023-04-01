@@ -3,7 +3,7 @@ FROM rust:1.66-slim-buster as build
 
 # 2. Copy the files in your machine to the Docker image
 RUN apt-get update && apt-get -y install pkg-config build-essential libssl-dev curl git && rm -rf /var/lib/apt/lists/*
-RUN git clone https://github.com/nymtech/nym && cd nym && git checkout $(curl -sSL 'https://api.github.com/repos/nymtech/nym/releases' | grep nym-client | grep -E -o "nym-binaries-v[0-9]\.]?[0-9]\.]?[0-9]\]?" | sort | tail -n 1)
+RUN git clone https://github.com/nymtech/nym && cd nym && git checkout $(curl -s 'https://api.github.com/repos/nymtech/nym/releases' | sed -n '0,/.*"tag_name": "\(nym-binaries.*\)",/s//\1/p')
 WORKDIR /nym
 
 # Build your program for release
