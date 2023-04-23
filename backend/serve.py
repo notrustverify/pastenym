@@ -41,7 +41,7 @@ class Serve:
         else:
             headers = HEADER_APPLICATION_JSON
             padding = (NYM_KIND_TEXT + NYM_HEADER_SIZE_TEXT + HEADER_APPLICATION_JSON_BYTE).decode('utf-8')
-            message = padding + headers + reply_message
+            message = padding + headers + json.dumps(reply_message)
 
         dataToSend = {
             "type": "reply",
@@ -121,7 +121,7 @@ class Serve:
             print(f"Unicode error, nothing to do about: {e}")
             return
 
-        received_data = Serve.getPayload(received_message)
+        received_data, isRaw = Serve.getPayload(received_message)
         recipient = Serve.getRecipient(received_message)
 
         if recipient is None:
@@ -139,17 +139,17 @@ class Serve:
 
             except ValueError as e:
                 self.error(recipient, message, received_message, e)
+                return
         else:
             self.error(recipient, message, received_message, "received data is empty")
-
-        reply = ""
+            return
 
         if event == CMD_NEW_TEXT:
-            reply = self.newText(recipient, data, recipient)
+            reply = self.newText(data)
         elif event == CMD_GET_TEXT:
-            reply = self.getText(recipient, data, recipient)
+            reply = self.getText(data)
         elif event == CMD_GET_PING:
-            reply = self.getVersion(recipient)
+            reply = self.getVersion()
         else:
             reply = f"Error event {event} not found"
 
@@ -158,11 +158,10 @@ class Serve:
         else:
             print(f"-> Rcv {event} - answers to {recipient} over the mix network.")
 
-        self.ws.send(Serve.createPayload(recipient, reply, sendRaw=True))
+        self.ws.send(Serve.createPayload(recipient, reply, sendRaw=isRaw))
 
 
-    def newText(self, recipient, message, senderTag):
-
+    def newText(self, message):
         if "text" in message.keys():
             if len(message.get('text')) <= utils.PASTE_MAX_LENGTH:
                 urlId = self.pasteNym.newText(message)
@@ -190,7 +189,7 @@ class Serve:
 
         return reply_message
 
-    def getText(self, recipient, message,senderTag):
+    def getText(self, message):
         text = self.pasteNym.getTextById(message)
 
         try:
@@ -222,7 +221,7 @@ class Serve:
 
         return reply_message
 
-    def getVersion(self, recipient=None):
+    def getVersion(self):
 
         capabilities = {'ipfs_hosting': utils.IPFS_HOST is not None,
                         'expiration_bitcoin_height': utils.BITCOIN_RPC_URL is not None and self.cron.isBitcoinExpirationWorking()}
@@ -250,8 +249,10 @@ class Serve:
     @staticmethod
     def getPayload(received_message):
         # try to json decode, if it works it mean sendRaw is used
+        raw = False
         try:
-            return json.loads(received_message['message'])
+            raw = True
+            return json.loads(received_message['message']), raw
         except JSONDecodeError as e:
             print(f"cannot decode message received, {e}")
 
@@ -264,15 +265,17 @@ class Serve:
         except IndexError as e:
             print(f"Error getting message kind, {e}")
             traceback.print_exc()
-            return None
+            return None, None
 
         payload = received_message['message'][TOTAL_HEADERS_PAD_SIZE:]
 
         if kindReceived == NYM_KIND_TEXT:
-            return json.loads(payload)
+            raw = False
+            return json.loads(payload), raw
+
         elif kindReceived == NYM_KIND_BINARY:
             print("bin data received. Don't know what to do")
-            return None
+            return None, None
 
         return None
 
