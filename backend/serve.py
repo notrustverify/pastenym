@@ -1,5 +1,7 @@
 import base64
 import json
+from json import JSONDecodeError
+
 import websocket
 
 from cron import Cron
@@ -33,25 +35,20 @@ TOTAL_HEADERS_PAD_SIZE = len(HEADER_APPLICATION_JSON)+len(NYM_HEADER_SIZE_TEXT)+
 class Serve:
 
     @staticmethod
-    def createPayload(recipient, reply_message, senderTag=None ,is_text=True):
-        if is_text:
-            headers = HEADER_APPLICATION_JSON
-            padding = (NYM_KIND_TEXT + NYM_HEADER_SIZE_TEXT+HEADER_APPLICATION_JSON_BYTE).decode('utf-8')
+    def createPayload(recipientData, reply_message, sendRaw):
+        if sendRaw:
+            message = json.dumps(reply_message)
         else:
-            # not used now, to investigate later
-            padding = (NYM_KIND_BINARY + NYM_HEADER_BINARY).decode('utf-8')
+            headers = HEADER_APPLICATION_JSON
+            padding = (NYM_KIND_TEXT + NYM_HEADER_SIZE_TEXT + HEADER_APPLICATION_JSON_BYTE).decode('utf-8')
+            message = padding + headers + json.dumps(reply_message)
 
         dataToSend = {
-           "type": "reply",
-            # append \x00 because of "kind" message is non binary and equal 0 + 1 bytes because no header are set
-           #"message": ,
-            "message": padding+headers+reply_message
+            "type": "reply",
+            "message": message,
         }
 
-        if senderTag is not None:
-            dataToSend.update({'senderTag': senderTag})
-        elif recipient is not None:
-            dataToSend.update({'recipient': recipient})
+        dataToSend.update(recipientData)
 
         return json.dumps(dataToSend)
 
@@ -106,99 +103,65 @@ class Serve:
     def on_message(self, ws, message):
         try:
             if self.firstRun:
-                self_address = json.loads(message)
-                print("Our address is: {}".format(self_address["address"]))
+                self.getSelfAddress(message)
                 self.firstRun = False
                 return
 
-            received_message = json.loads(message)
+            try:
+                received_message = json.loads(message)
+            except JSONDecodeError as e:
+                traceback.print_exc()
+                return
 
             # test if it's ping answer message
             if received_message.get('address'):
                 return
 
-            recipient = None
-
         except UnicodeDecodeError as e:
             print(f"Unicode error, nothing to do about: {e}")
             return
 
-        try:
-            if utils.isBase64(received_message['message']):
-                received_message['message'] = base64.b64decode(received_message['message'])
-                kindReceived = received_message['message'][0:8][0:1]
-            else:
-                kindReceived = bytes(received_message['message'][0:8], 'utf-8')[0:1]
-        except IndexError as e:
-            print(f"Error getting message kind, {e}")
-            traceback.print_exc()
+        received_data, isRaw = Serve.getPayload(received_message)
+        recipient = Serve.getRecipient(received_message)
+
+        if recipient is None:
+            print(f"no recipient found in {received_message}")
+            return
+        if received_data is not None:
+            try:
+                event = received_data['event']
+                data = received_data['data']
+
+                if utils.DEBUG:
+                    print(f"-> Got {received_message}")
+                else:
+                    print(f"-> Got {event} from {recipient}")
+
+            except (ValueError, KeyError) as e:
+                self.error(recipient, message, received_message, e)
+                return
+        else:
+            self.error(recipient, message, received_message, "received data is empty")
             return
 
-        # we received the data in a json
-        try:
-            # received data with padding, start at the 54th bytes
-            payload = received_message['message'][TOTAL_HEADERS_PAD_SIZE:]
-            senderTag = received_message.get('senderTag', None)
-
-            if kindReceived == NYM_KIND_TEXT:
-                received_data = json.loads(payload)
-            elif kindReceived == NYM_KIND_BINARY:
-                print("bin data received. Don't know what to do")
-                return
-            else:
-
-                print(message)
-                print("no message kind received. Don't know what to do")
-                return
-
-            if senderTag is None:
-                recipient = received_data['sender']
-            else:
-                recipient = None
-
-            event = received_data['event']
-            data = received_data['data']
-
-            if utils.DEBUG:
-                print(f"-> Got {received_message}")
-            else:
-                print(f"-> Got {event} from {senderTag}")
-
-        except (IndexError, KeyError, json.JSONDecodeError) as e:
-            if recipient is not None or senderTag is not None:
-                err_msg = f"Error parsing message: {e}"
-                reply_message = err_msg
-                self.ws.send(Serve.createPayload(recipient, reply_message, senderTag))
-                print(f"send error message, data received {message}")
-                return
-            else:
-                print(f"No recipient found in message {received_message}")
-                return None
-
-        reply = ""
-
-        if recipient is not None or senderTag is not None:
-            if event == CMD_NEW_TEXT:
-                reply = self.newText(recipient, data, senderTag)
-            elif event == CMD_GET_TEXT:
-                reply = self.getText(recipient, data, senderTag)
-            elif event == CMD_GET_PING:
-                reply = self.getVersion(recipient,senderTag)
-            else:
-                reply = f"Error event {event} not found"
-
-            if utils.DEBUG:
-                print(f"-> Rcv {event} - answers {reply} over the mix network.")
-            else:
-                print(f"-> Rcv {event} - answers to {senderTag} over the mix network.")
-
-            self.ws.send(reply)
+        if event == CMD_NEW_TEXT:
+            reply = self.newText(data)
+        elif event == CMD_GET_TEXT:
+            reply = self.getText(data)
+        elif event == CMD_GET_PING:
+            reply = self.getVersion()
         else:
-            print(f"No recipient/senderTag found in message {received_message}")
+            reply = f"Error event {event} not found"
 
-    def newText(self, recipient, message, senderTag):
+        if utils.DEBUG:
+            print(f"-> Rcv {event} - answers {reply} over the mix network.")
+        else:
+            print(f"-> Rcv {event} - answers to {recipient} over the mix network.")
 
-        reply_message = None
+        self.ws.send(Serve.createPayload(recipient, reply, sendRaw=isRaw))
+
+
+    def newText(self, message):
         if "text" in message.keys():
             if len(message.get('text')) <= utils.PASTE_MAX_LENGTH:
                 urlId = self.pasteNym.newText(message)
@@ -224,9 +187,9 @@ class Serve:
         else:
             reply_message = "Message has no text!"
 
-        return Serve.createPayload(recipient, json.dumps(reply_message),senderTag)
+        return reply_message
 
-    def getText(self, recipient, message,senderTag):
+    def getText(self, message):
         text = self.pasteNym.getTextById(message)
 
         try:
@@ -248,7 +211,7 @@ class Serve:
                     text['expiration_time'] = datetime.isoformat(
                         text['expiration_time']) + 'Z'
 
-                reply_message = json.dumps(text, default=str)
+                reply_message = text
 
             else:
                 reply_message = json.dumps({"error": "text not found"})
@@ -256,11 +219,76 @@ class Serve:
             print(e)
             reply_message = "error"
 
-        return Serve.createPayload(recipient, reply_message, senderTag)
+        return reply_message
 
-    def getVersion(self, recipient=None, senderTag=None):
+    def getVersion(self):
 
         capabilities = {'ipfs_hosting': utils.IPFS_HOST is not None,
                         'expiration_bitcoin_height': utils.BITCOIN_RPC_URL is not None and self.cron.isBitcoinExpirationWorking()}
         reply_message = {"version": utils.VERSION, "alive": True, "capabilities": capabilities}
-        return Serve.createPayload(recipient, json.dumps(reply_message), senderTag)
+        return reply_message
+
+    def error(self, recipient, message, received_message, error):
+        if recipient is not None:
+            err_msg = f"Error parsing message: {error}"
+            reply_message = err_msg
+            self.ws.send(Serve.createPayload(recipient, reply_message, sendRaw=True))
+            print(f"send error message, data received {message}")
+            return
+        else:
+            print(f"No recipient found in message {received_message}")
+            return None
+
+    @staticmethod
+    def getRecipient(received_message):
+        recipient = received_message.get('senderTag')
+        if recipient is None:
+            return None
+
+        return {"senderTag": recipient}
+    @staticmethod
+    def getPayload(received_message):
+        # try to json decode, if it works it mean sendRaw is used
+        raw = False
+        try:
+            raw = True
+            return json.loads(received_message['message']), raw
+        except JSONDecodeError as e:
+            print(f"cannot decode message received, {e}")
+
+        try:
+            if utils.isBase64(received_message['message']):
+                received_message['message'] = base64.b64decode(received_message['message'])
+                kindReceived = received_message['message'][0:8][0:1]
+            else:
+                kindReceived = bytes(received_message['message'][0:8], 'utf-8')[0:1]
+        except (IndexError, KeyError, ValueError) as e:
+            print(f"Error getting message kind, {e}")
+            traceback.print_exc()
+            return None, None
+
+        payload = received_message['message'][TOTAL_HEADERS_PAD_SIZE:]
+
+        if kindReceived == NYM_KIND_TEXT:
+            raw = False
+            return json.loads(payload), raw
+
+        elif kindReceived == NYM_KIND_BINARY:
+            print("bin data received. Don't know what to do")
+            return None, None
+
+        return None
+
+
+    def getSelfAddress(self,message):
+        try:
+            self_address = json.loads(message)
+        except JSONDecodeError as e:
+            print(f"error decoding self address, {e}")
+            return
+
+        try:
+            print("Our address is: {}".format(self_address["address"]))
+        except ValueError as e:
+            print(f"error decoding self address, {e}")
+            return
