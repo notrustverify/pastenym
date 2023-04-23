@@ -137,7 +137,7 @@ class Serve:
                 else:
                     print(f"-> Got {event} from {recipient}")
 
-            except ValueError as e:
+            except (ValueError, KeyError) as e:
                 self.error(recipient, message, received_message, e)
                 return
         else:
@@ -262,7 +262,7 @@ class Serve:
                 kindReceived = received_message['message'][0:8][0:1]
             else:
                 kindReceived = bytes(received_message['message'][0:8], 'utf-8')[0:1]
-        except IndexError as e:
+        except (IndexError, KeyError, ValueError) as e:
             print(f"Error getting message kind, {e}")
             traceback.print_exc()
             return None, None
