@@ -37,7 +37,7 @@ class Serve:
     @staticmethod
     def createPayload(recipientData, reply_message, sendRaw):
         if sendRaw:
-            message = json.dumps(reply_message)
+            message = json.dumps(reply_message, default=str)
         else:
             headers = HEADER_APPLICATION_JSON
             padding = (NYM_KIND_TEXT + NYM_HEADER_SIZE_TEXT + HEADER_APPLICATION_JSON_BYTE).decode('utf-8')
