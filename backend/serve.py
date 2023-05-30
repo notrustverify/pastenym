@@ -121,8 +121,12 @@ class Serve:
             print(f"Unicode error, nothing to do about: {e}")
             return
 
-        received_data, isRaw = Serve.getPayload(received_message)
-        recipient = Serve.getRecipient(received_message)
+        try:
+            received_data, isRaw = Serve.getPayload(received_message)
+            recipient = Serve.getRecipient(received_message)
+        except TypeError as e:
+            print(f"got an error with received payload, {e}")
+            return
 
         if recipient is None:
             print(f"no recipient found in {received_message}")
@@ -252,8 +256,11 @@ class Serve:
         raw = False
         try:
             raw = True
+            if utils.isBase64(received_message['message']):
+                return json.loads(base64.b64decode(received_message['message'])), raw
+
             return json.loads(received_message['message']), raw
-        except JSONDecodeError as e:
+        except (JSONDecodeError, UnicodeDecodeError) as e:
             print(f"cannot decode message received, {e}")
 
         try:
