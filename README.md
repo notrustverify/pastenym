@@ -1,5 +1,14 @@
 # pastenym
 
+## ⚠️ Pastenym has retired. ⚠️
+
+For more information, please refer to [this tweet](https://twitter.com/notrustverif/status/1785246045141913922).
+You can still find the code for [the backend](https://github.com/notrustverify/pastenym) and [the frontend](https://github.com/notrustverify/pastenym-frontend) on our Github repos.
+
+Your No Trust Verify team
+
+## What is Pastenym?
+
 This project is inspired from [pastebin](https://pastebin.com/) service.
 The main goal is to offer a solution for sharing text with [Nym](https://nymtech.net/) products to offer full anonymity, even on metadata level
 
